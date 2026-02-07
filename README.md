@@ -54,6 +54,12 @@ AI agents are increasingly executing autonomous trades, yet they lack built-in s
 Unlike traditional risk filters that use static "if-then" logic, Aegis leverages GPT-4o-mini as a **Contextual Synthesis Layer**.
 
 ### Static Code vs. Aegis AI Officer
+
+| Feature | Static Logic (TradFi) | Aegis AI Risk Officer |
+| :--- | :--- | :--- |
+| **Data Noise** | Fails on unexpected data. | Contextually interprets "noisy" API responses. |
+| **Risk Patterns** | Hardcoded checks. | Identifies complex, multi-factor scam patterns. |
+| **Synthesis** | Binary: Pass or Fail. | Weighted reasoning: Evaluates the *totality* of risk. |
 | **Transparency** | Returns a 403 status. | Returns signed, human-readable reasoning. |
 
 ---
