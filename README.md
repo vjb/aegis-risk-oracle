@@ -11,14 +11,42 @@ Aegis is a production-ready risk oracle that prevents AI agents from executing s
 
 ---
 
-## 🎯 Problem Statement
+## 🧠 Why an LLM? (The Synthesis Layer)
 
-AI agents (ElizaOS, LangChain, etc.) are increasingly executing autonomous DeFi trades, but they lack built-in safeguards against:
-- 🚨 **Honeypot tokens** (can't be sold after purchase)
-- 💸 **Price manipulation** (asking price deviates from market)
-- ⚠️ **Scam tokens** (rug pulls, unverified contracts)
+Unlike traditional risk filters that use static "if-then" logic, Aegis leverages GPT-4o-mini as a **Contextual Synthesis Layer**. 
 
-**Solution:** Aegis provides a decentralized risk oracle that agents MUST consult before trades.
+### Static Code vs. Aegis AI
+| Feature | Static Logic (TradFi) | Aegis AI Risk Officer |
+| :--- | :--- | :--- |
+| **Data Noise** | Fails on unexpected/partial data. | Contextually interprets "noisy" API responses. |
+| **Risk Patterns** | Hardcoded checks (e.g., if price > X). | Identifies complex, multi-factor scam patterns. |
+| **Synthesis** | Binary: Pass or Fail. | Weighted reasoning: Evaluates the *totality* of risk. |
+| **Transparency** | Returns a status code (403). | Returns human-readable, cryptographically signed reasoning. |
+
+### 🛠️ AI Evaluation Flow
+```mermaid
+graph TD
+    subgraph Data_Inputs ["Step 1: Raw Signals"]
+        A[Price Delta]
+        B[Security Flags]
+        C[Trade Value]
+        D[Contract Metadata]
+    end
+
+    subgraph LLM_Synthesis ["Step 2: AI Synthesis Layer"]
+        S1{Contextual Evaluation}
+        S2{Pattern Identification}
+        S3{Multi-Factor Weighting}
+        S1 --> S2 --> S3
+    end
+
+    subgraph Output ["Step 3: Verifiable Result"]
+        V[Signed Verdict & Reasoning]
+    end
+
+    Data_Inputs --> LLM_Synthesis
+    LLM_Synthesis --> Output
+```
 
 ---
 

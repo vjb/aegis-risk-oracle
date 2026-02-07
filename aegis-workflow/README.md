@@ -2,33 +2,26 @@
 
 This directory contains the main **Chainlink CRE Workflow** logic for the Aegis Risk Oracle. It serves as an intelligent middle-layer that protects DeFi agents from malicious trades.
 
-## 🧠 AI Risk Officer Logic
+## 🧠 AI Risk Officer: Beyond Static Logic
 
-The workflow utilizes an LLM-based "Risk Officer" that synthesizes data from multiple real-time APIs to reach a verdict.
+The "Risk Officer" implementation in `main.ts` doesn't just check boxes; it performs **Weighted Synthesis**. While we provide a "Law of the Land" (the evaluation criteria), the LLM interprets the **intersection** of these factors.
 
+### The Synthesis Layer
 ```mermaid
-flowchart TD
-    Start["AI Risk Officer Evaluation"] --> CriticalCheck{"Is Honeypot OR<br/>Restrictions?"}
-    CriticalCheck -- Yes --> Reject10["MANDATORY REJECT<br/>(Score: 10/10)"]
-    CriticalCheck -- No --> PriceCheck{"Price Deviation?"}
+graph TD
+    In[Data Context] --> Eval[Intelligent Logic Synthesis]
     
-    PriceCheck -- "> 50%" --> Reject50["MANDATORY REJECT<br/>(Score: 10/10)"]
-    PriceCheck -- "15% - 50%" --> AmberPrice["Amber Flag<br/>(+4 Risk Points)"]
-    PriceCheck -- "< 15%" --> SafePrice["No Price Risk"]
+    subgraph Logic_Synthesis ["Contextual Interpretation"]
+        P1[Is this markup 'normal' for this liquidity?]
+        P2[Does this proxy hide malicious functions?]
+        P3[Is the exposure too high for this token trust level?]
+    end
     
-    AmberPrice & SafePrice --> TechnicalCheck{"Technical Flags?<br/>(Proxy, Mintable, Tax)"}
-    TechnicalCheck -- Yes --> AmberTech["Amber Flag<br/>(+3-4 Risk Points)"]
-    TechnicalCheck -- No --> SafeTech["No Technical Risk"]
-    
-    AmberTech & SafeTech --> ExposureCheck{"Is High Value?<br/>(> $50k USD)"}
-    ExposureCheck -- Yes --> AmberExposure["Amber Flag<br/>(+4 Risk Points)"]
-    ExposureCheck -- No --> SafeExposure["No Exposure Risk"]
-    
-    AmberExposure & SafeExposure --> ScoreSum["Sum Total Risk Score"]
-    ScoreSum --> Threshold{"Total Score >= 7?"}
-    Threshold -- Yes --> RejectSum["REJECT<br/>Cumulative Risk"]
-    Threshold -- No --> ExecuteSafe["EXECUTE<br/>Safe to Trade"]
+    Eval --> Logic_Synthesis
+    Logic_Synthesis --> Res[Weighted Risk Score & Signed Reasoning]
 ```
+
+**Key Advantage**: A static script might miss a "Composite Risk" where three amber flags (e.g., moderate tax, moderate markup, and unknown proxy) combine to create a critical threat. The Aegis LLM recognizes these patterns holistically.
 
 ## 🧪 Multi-Factor Test Suite
 
