@@ -50,6 +50,17 @@ graph TD
 
 ---
 
+---
+
+## 🎯 Case Study: Risk & Compliance
+
+Aegis is built specifically for the **Risk & Compliance** category. It provides:
+- 🕵️ **Automated Risk Monitoring**: Real-time analysis of token security and economics.
+- 🛡️ **Protocol Safeguards**: Verified oracle results that trigger/block on-chain execution.
+- ⚡ **Real-Time Controls**: Sub-second risk synthesis using the Chainlink CRE network.
+
+---
+
 ## 🏗️ Architecture
 
 ### 1. High-Level Interaction
@@ -74,7 +85,7 @@ sequenceDiagram
     APIs-->>Oracle: Return Data
     end
 
-    Oracle->>APIs: AI Risk Analysis (OpenAI GPT-4)
+    Oracle->>APIs: AI Risk Analysis (OpenAI GPT-4o-mini)
     APIs-->>Oracle: Return Analysis
     
     Oracle->>Oracle: Sign Result (DON Key)
@@ -84,31 +95,6 @@ sequenceDiagram
     Vault->>Vault: Verify DON Signature
     Vault->>Vault: Enforce Risk Policy (Score < 7 && EXECUTE)
     Vault->>Vault: Execute Swap
-```
-
-### 2. AI Risk Officer Logic
-```mermaid
-flowchart TD
-    Start["AI Risk Officer Evaluation"] --> CriticalCheck{"Is Honeypot OR<br/>Restrictions?"}
-    CriticalCheck -- Yes --> Reject10["MANDATORY REJECT<br/>(Score: 10/10)"]
-    CriticalCheck -- No --> PriceCheck{"Price Deviation?"}
-    
-    PriceCheck -- "> 50%" --> Reject50["MANDATORY REJECT<br/>(Score: 10/10)"]
-    PriceCheck -- "15% - 50%" --> AmberPrice["Amber Flag<br/>(+4 Risk Points)"]
-    PriceCheck -- "< 15%" --> SafePrice["No Price Risk"]
-    
-    AmberPrice & SafePrice --> TechnicalCheck{"Technical Flags?<br/>(Proxy, Mintable, Tax)"}
-    TechnicalCheck -- Yes --> AmberTech["Amber Flag<br/>(+3-4 Risk Points)"]
-    TechnicalCheck -- No --> SafeTech["No Technical Risk"]
-    
-    AmberTech & SafeTech --> ExposureCheck{"Is High Value?<br/>(> $50k USD)"}
-    ExposureCheck -- Yes --> AmberExposure["Amber Flag<br/>(+4 Risk Points)"]
-    ExposureCheck -- No --> SafeExposure["No Exposure Risk"]
-    
-    AmberExposure & SafeExposure --> ScoreSum["Sum Total Risk Score"]
-    ScoreSum --> Threshold{"Total Score >= 7?"}
-    Threshold -- Yes --> RejectSum["REJECT<br/>Cumulative Risk"]
-    Threshold -- No --> ExecuteSafe["EXECUTE<br/>Safe to Trade"]
 ```
 
 ### 3. Internal Workflow Logic
