@@ -58,49 +58,15 @@ Unlike traditional risk filters that use static "if-then" logic, Aegis leverages
 
 ---
 
-## 🔒 The "Triple Lock" Security Standard
+## � Security: The "Triple Lock" Standard
 
-Aegis implements an **Institutional-Grade Security Layer** that goes beyond simple signatures. We protect the oracle payload with three cryptographic locks, ensuring that mid-flight tampering or signature hijacking is impossible.
+Aegis follows **Chainlink CRE Best Practices** to ensure data integrity and freshness. Our "Triple Lock" signature binds the oracle's verdict to the **Identity** of the user, the exact **Value** of the asset, and a **5-minute expiration window**—exactly matching CRE's institutional security standards.
 
-### 🛡️ Why we are Secure-by-Default:
-1.  **Identity Lock (`userAddress`)**: The signature is cryptographically bound to the user's wallet. An attacker cannot "harvest" a valid agreement and use it for themselves.
-2.  **Value Lock (`askingPrice`)**: The agreement is bound to the exact price at the time of signing. Even a 1-cent change invalidates the proof.
-3.  **Time Lock (`timestamp`)**: Approvals expire after **5 minutes**. This prevents late-execution or "time-travel" attacks.
-4.  **Replay Protection (`salt`)**: Every signature is unique. The smart contract tracks the quantum-derived salt to prevent re-using an old approval.
+*   **Identity Lock**: Prevents signature hijacking.
+*   **Value Lock**: Ensures price immutability.
+*   **Time Lock**: Prevents late-replay attacks (CRE 5-min standard).
 
-### 📊 Cryptographic Proof Flow
-```mermaid
-flowchart TD
-    subgraph DON ["Chainlink DON (Off-Chain)"]
-        D1[Analyze Risk] --> D2[Hash Payload]
-        subgraph Message_Hash ["Triple Lock Hashing"]
-            D2 --> H1["userAddress (Identity)"]
-            D2 --> H2["askingPrice (Value)"]
-            D2 --> H3["timestamp (Time)"]
-        end
-        D2 --> D3[Sign Hash with DON Private Key]
-    end
-
-    subgraph Transport ["Transmission (Untrusted)"]
-        T1[Potential Tamper Attempt]
-    end
-
-    subgraph Contract ["AegisVault.sol (On-Chain)"]
-        C1[Reconstruct Hash] --> C2{Verify Signature}
-        C3{Check Time < 5m} --> C4{Check Salt Used}
-        C2 & C3 & C4 --> C5[Execute Trade]
-    end
-
-    DON --> Transport --> Contract
-    T1 -- "Any change to Value/User/Time" --> C1 -- "Hash Mismatch" --> Fail[REJECT TRANSACTION]
-```
-
-### 📂 Security Code & Proofs
-| Component | Responsibility | Source Link |
-| :--- | :--- | :--- |
-| **Logic (DON)** | Implementation of Triple Lock hashing & signing. | [main.ts](aegis-workflow/main.ts) |
-| **Verification** | "Digital Twin" of the On-Chain verification logic. | [verify-signature.ts](aegis-workflow/verify-signature.ts) |
-| **Security Proofs** | Live demo of Hijack, Tamper, and Replay detection. | [test-crypto.ps1](test-crypto.ps1) |
+These protections are provable on-chain and demonstrated in our [Cryptographic Security Phase](test-crypto.ps1).
 
 ---
 
