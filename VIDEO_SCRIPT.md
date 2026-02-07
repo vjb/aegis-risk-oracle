@@ -9,7 +9,7 @@
 
 ### Screen: README or Architecture Diagram
 **Voiceover:**
-> "Hi! This is Aegis, an AI-powered risk oracle built with Chainlink CRE. Aegis prevents autonomous AI agents from executing scam trades by providing real-time risk assessments across any EVM blockchain."
+> "Hi! This is Aegis, an AI-powered risk oracle built with Chainlink CRE. Aegis prevents autonomous agents—whether built with ElizaOS, LangChain, or other frameworks—from executing scam trades by providing real-time risk assessments across any EVM blockchain."
 
 **Show:**
 - Project title and description
@@ -21,7 +21,7 @@
 
 ### Screen: Highlight problem statement in README
 **Voiceover:**
-> "AI agents like ElizaOS are increasingly executing DeFi trades autonomously, but they lack built-in safeguards. They can unknowingly trade honeypot tokens, fall victim to price manipulation, or interact with scam contracts. Aegis solves this by acting as a mandatory risk checkpoint before any trade executes."
+> "AI agents like ElizaOS or LangChain are increasingly executing DeFi trades autonomously, but they lack built-in safeguards. They can unknowingly trade honeypot tokens, fall victim to price manipulation, or interact with scam contracts. Aegis solves this by acting as a mandatory risk checkpoint before any trade executes."
 
 **Show:**
 - Problem bullets from README
@@ -39,11 +39,9 @@
 1. HTTP trigger setup (line ~243)
 2. Zod validation (line ~10-18)
 3. API integrations section:
-   - "Then it fetches real-time data from four sources:"
-   - CoinGecko for market prices
-   - GoPlus Labs for token security
-   - QRNG for quantum entropy
-   - OpenAI GPT-4 for AI-powered risk analysis
+   - "Then it fetches real-time data from four sources. Importantly, we fetch market data, security data, and entropy in parallel to maximize performance:"
+   - CoinGecko, GoPlus Labs, and QRNG (Fetched in parallel!)
+   - OpenAI GPT-4 (Contextual AI Risk analysis)
 
 **Show:**
 - Import statements
