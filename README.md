@@ -11,53 +11,9 @@ Aegis is a production-ready risk oracle that prevents AI agents from executing s
 
 ---
 
-## 🧠 Why an LLM? (The Synthesis Layer)
+## 🎯 Problem Statement
 
-Unlike traditional risk filters that use static "if-then" logic, Aegis leverages GPT-4o-mini as a **Contextual Synthesis Layer**. 
-
-### Static Code vs. Aegis AI
-| Feature | Static Logic (TradFi) | Aegis AI Risk Officer |
-| :--- | :--- | :--- |
-| **Data Noise** | Fails on unexpected/partial data. | Contextually interprets "noisy" API responses. |
-| **Risk Patterns** | Hardcoded checks (e.g., if price > X). | Identifies complex, multi-factor scam patterns. |
-| **Synthesis** | Binary: Pass or Fail. | Weighted reasoning: Evaluates the *totality* of risk. |
-| **Transparency** | Returns a status code (403). | Returns human-readable, cryptographically signed reasoning. |
-
-### 🛠️ AI Evaluation Flow
-```mermaid
-graph TD
-    subgraph Data_Inputs ["Step 1: Raw Signals"]
-        A[Price Delta]
-        B[Security Flags]
-        C[Trade Value]
-        D[Contract Metadata]
-    end
-
-    subgraph LLM_Synthesis ["Step 2: AI Synthesis Layer"]
-        S1{Contextual Evaluation}
-        S2{Pattern Identification}
-        S3{Multi-Factor Weighting}
-        S1 --> S2 --> S3
-    end
-
-    subgraph Output ["Step 3: Verifiable Result"]
-        V[Signed Verdict & Reasoning]
-    end
-
-    Data_Inputs --> LLM_Synthesis
-    LLM_Synthesis --> Output
-```
-
----
-
----
-
-## 🎯 Case Study: Risk & Compliance
-
-Aegis is built specifically for the **Risk & Compliance** category. It provides:
-- 🕵️ **Automated Risk Monitoring**: Real-time analysis of token security and economics.
-- 🛡️ **Protocol Safeguards**: Verified oracle results that trigger/block on-chain execution.
-- ⚡ **Real-Time Controls**: Sub-second risk synthesis using the Chainlink CRE network.
+AI agents are increasingly executing autonomous trades, but they lack built-in safeguards against **Honeypots**, **Price Manipulation**, and **Contract Malice**. Aegis provides the decentralized "Intelligent Guardrail" they need.
 
 ---
 
@@ -97,7 +53,57 @@ sequenceDiagram
     Vault->>Vault: Execute Swap
 ```
 
-### 3. Internal Workflow Logic
+---
+
+## 🧠 Why an LLM? (The Synthesis Layer)
+
+Unlike traditional risk filters that use static "if-then" logic, Aegis leverages GPT-4o-mini as a **Contextual Synthesis Layer**. 
+
+### Static Code vs. Aegis AI
+| Feature | Static Logic (TradFi) | Aegis AI Risk Officer |
+| :--- | :--- | :--- |
+| **Data Noise** | Fails on unexpected/partial data. | Contextually interprets "noisy" API responses. |
+| **Risk Patterns** | Hardcoded checks (e.g., if price > X). | Identifies complex, multi-factor scam patterns. |
+| **Synthesis** | Binary: Pass or Fail. | Weighted reasoning: Evaluates the *totality* of risk. |
+| **Transparency** | Returns a status code (403). | Returns human-readable, cryptographically signed reasoning. |
+
+### 🛠️ AI Evaluation Flow
+```mermaid
+graph TD
+    subgraph Data_Inputs ["Step 1: Raw Signals"]
+        A[Price Delta]
+        B[Security Flags]
+        C[Trade Value]
+        D[Contract Metadata]
+    end
+
+    subgraph LLM_Synthesis ["Step 2: AI Synthesis Layer"]
+        S1{Contextual Evaluation}
+        S2{Pattern Identification}
+        S3{Multi-Factor Weighting}
+        S1 --> S2 --> S3
+    end
+
+    subgraph Output ["Step 3: Verifiable Result"]
+        V[Signed Verdict & Reasoning]
+    end
+
+    Data_Inputs --> LLM_Synthesis
+    LLM_Synthesis --> Output
+```
+
+---
+
+## 🎯 Case Study: Risk & Compliance
+
+Aegis is built specifically for the **Risk & Compliance** category. It provides:
+- 🕵️ **Automated Risk Monitoring**: Real-time analysis of token security and economics.
+- 🛡️ **Protocol Safeguards**: Verified oracle results that trigger/block on-chain execution.
+- ⚡ **Real-Time Controls**: Sub-second risk synthesis using the Chainlink CRE network.
+
+---
+
+### 2. Internal Workflow Logic
 ```mermaid
 ---
 config:
