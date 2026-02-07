@@ -143,26 +143,26 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
 
     const [priceResult, entropyResult, securityResult] = await Promise.all([
         // 1. Fetch ETH price from CoinGecko
-        httpClient.sendRequest(runtime, {
+        httpClient.sendRequest(runtime as any, {
             url: "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
             method: "GET"
         }).result(),
 
         // 2. Fetch quantum entropy from QRNG
-        httpClient.sendRequest(runtime, {
+        httpClient.sendRequest(runtime as any, {
             url: "https://qrng.anu.edu.au/API/jsonI.php?length=1&type=hex16&size=32",
             method: "GET"
         }).result(),
 
         // 3. Fetch security data from GoPlus Labs
-        httpClient.sendRequest(runtime, {
+        httpClient.sendRequest(runtime as any, {
             url: `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${tokenAddress}`,
             method: "GET"
         }).result()
     ]);
 
     // Process Price Results (with 429 detection)
-    const priceData = ok(priceResult) ? json(priceResult) : null;
+    const priceData = ok(priceResult) ? (json(priceResult) as any) : null;
     const priceStatus = ok(priceResult) ? priceResult.statusCode : 0;
 
     let ethPrice: string;
@@ -177,7 +177,7 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     }
 
     // Process Entropy Results
-    const entropyData = ok(entropyResult) ? json(entropyResult) : null;
+    const entropyData = ok(entropyResult) ? (json(entropyResult) as any) : null;
     const entropyFromAPI = entropyData?.data?.[0];
     let entropy: string;
     let entropySource: string;
@@ -192,7 +192,7 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     }
 
     // Process Security Results (Enhanced Detection)
-    const securityData = ok(securityResult) ? json(securityResult) : null;
+    const securityData = ok(securityResult) ? (json(securityResult) as any) : null;
     const tokenData = securityData?.result?.[tokenAddress.toLowerCase()] || {};
 
     const isHoneypot = String(tokenData.is_honeypot) === "1";
@@ -287,7 +287,7 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     // 🚀 CRE BEST PRACTICE: Using Runner Config for simulation & Secure Secrets for production
     // This allows the workflow to be tested locally with a config file and 
     // run securely on the DON using encrypted secrets.
-    const openaiKey = runtime.config.openaiApiKey || await runtime.getSecret("OPENAI_API_KEY");
+    const openaiKey = runtime.config.openaiApiKey || await runtime.getSecret({ id: "OPENAI_API_KEY" });
 
     const openaiRequestBody = JSON.stringify({
         model: "gpt-4o-mini",
@@ -330,7 +330,7 @@ Do NOT include any other fields. Do NOT override the math based on token reputat
     // Convert body to base64 as required by CRE HTTPClient
     const bodyBase64 = Buffer.from(openaiRequestBody).toString('base64');
 
-    const aiResponse = httpClient.sendRequest(runtime, {
+    const aiResponse = await httpClient.sendRequest(runtime as any, {
         url: "https://api.openai.com/v1/chat/completions",
         method: "POST",
         headers: {

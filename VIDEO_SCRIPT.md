@@ -97,10 +97,20 @@
 **Voiceover:**
 > "The Zod schema validation catches this immediately and returns a structured error."
 
-### Quick Summary (25s)
-**Screen: Show all three test results side-by-side or in quick succession**
+### Phase 2: Live Security Proofs (1min)
+**Screen: Terminal running ./test-crypto.ps1**
 **Voiceover:**
-> "So we've demonstrated: successful trade execution with low risk, rejection of price manipulation, and proper error handling. All three scenarios show signed results for audit trail and compliance."
+> "But intel is nothing without integrity. Even if our oracle backend was compromised, we use a 'Triple Lock' cryptographic signature. Let's run our dedicated security demo."
+
+**Highlight in terminal:**
+- [PROOF 1] Protocol Compliance: **PASSED ✓**
+- [PROOF 2] Value Lock: **BLOCKED ✓** (Attacker tried to change the price)
+- [PROOF 3] Identity Lock: **BLOCKED ✓** (Attacker tried to hijack the signature)
+- [PROOF 4] Replay Detection: **BLOCKED ✓** (Preventing double-use of same approval)
+- [PROOF 5] Time Lock: **BLOCKED ✓** (Preventing late approvals)
+
+**Voiceover:**
+> "As you can see, the 'Triple Lock' protects the identity of the user, the exact value of the trade, and the time validity of the signal. This ensures Aegis is immutable and tamper-proof."
 
 ---
 

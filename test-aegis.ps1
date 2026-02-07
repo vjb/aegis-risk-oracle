@@ -56,43 +56,11 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
 
 # --- RUN WORKFLOW SCENARIOS ---
 Run-Test "Pass Scenario (WETH on Base)" "/app/test-payload-pass.json" "EXECUTE - Clean asset" "Green"
-$validPayload = $GLOBAL:LastJsonResult
-
 Run-Test "Safety Fail (Honeypot on BSC)" "/app/test-payload-honeypot.json" "REJECT - Safety critical" "Red"
 Run-Test "Economic Fail (Price Manipulation)" "/app/test-payload-manipulation.json" "REJECT - Market outlier" "Magenta"
-
-# --- CRYPTOGRAPHIC SECURITY PROOFS ---
-Write-Host "`n`n════════════════════════════════════════════════════════════════" -ForegroundColor Yellow
-Write-Host "  🔐 PHASE 2: CRYPTOGRAPHIC SECURITY PROOFS" -ForegroundColor Yellow
-Write-Host "════════════════════════════════════════════════════════════════" -ForegroundColor Yellow
-Write-Host "Goal: Prove the 'Triple Lock' protects against every major oracle attack."
-
-if ($validPayload) {
-    # 1. Protocol Integrity
-    Write-Host "`n[PROOF 1] Protocol Compliance (DON Signing)..." -ForegroundColor Cyan
-    bun aegis-workflow/verify-signature.ts "'$validPayload'"
-
-    # 2. Value Tampering (Amount Protection)
-    Write-Host "[PROOF 2] Value Lock (Tampering Detection)..." -ForegroundColor Yellow
-    $tamperedValue = $validPayload -replace '"askingPrice":"[0-9.]+"', '"askingPrice":"99999.00"'
-    bun aegis-workflow/verify-signature.ts "'$tamperedValue'"
-
-    # 3. Identity Hijacking (User Protection)
-    Write-Host "[PROOF 3] Identity Lock (Hijack Prevention)..." -ForegroundColor Yellow
-    $tamperedUser = $validPayload -replace '"userAddress":"0x[a-fA-F0-9]+"', '"userAddress":"0xDEADBEEF1234567890ABCDEF1234567890ABCDEF"'
-    bun aegis-workflow/verify-signature.ts "'$tamperedUser'"
-
-    # 4. Replay Protection (Salt tracking)
-    Write-Host "[PROOF 4] Replay Detection (Double Spend Prevention)..." -ForegroundColor Yellow
-    # First time valid
-    bun aegis-workflow/verify-signature.ts "'$validPayload'"
-    # Second time should fail in the script (salt used)
-    Write-Host "Attempting replay of the same signature..." -ForegroundColor Gray
-    bun aegis-workflow/verify-signature.ts "'$validPayload'"
-} else {
-    Write-Host "❌ Workflow failed to produce a valid payload for security tests." -ForegroundColor Red
-}
+Run-Test "Composite Risk (Suspicious Metadata)" "/app/test-payload-suspicious.json" "REJECT - High technical risk" "Yellow"
 
 Write-Host "`n════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  ✅ ALL AEGIS SYSTEMS NOMINAL: JUDGE-READY" -ForegroundColor Cyan
+Write-Host "  ✅ ANALYSIS SUITE COMPLETE" -ForegroundColor Cyan
+Write-Host "  💡 Run .\test-crypto.ps1 for Security Proofs" -ForegroundColor Yellow
 Write-Host "════════════════════════════════════════════════════════════════" -ForegroundColor Cyan

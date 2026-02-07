@@ -22,7 +22,7 @@ Aegis is a production-ready risk oracle that prevents AI agents from executing s
 | **CRE Workflow** | ✅ | Fully validated & simulated using `@chainlink/cre-sdk`. |
 | **Chainlink APIs** | ✅ | Parallel fetching of Market Data, Security Scores, and Entropy. |
 | **LLM Integration** | ✅ | GPT-4o-mini synthesized Multi-Factor Risk Analysis. |
-| **Verifiable Proof** | ✅ | Cryptographically signed verdict with quantum-derived salt. |
+| **The Triple Lock** | ✅ | ECDSA signatures with **Identity**, **Value**, and **Time** locks. |
 | **Sub-second Oracle** | ✅ | Real-time analysis with zero hardcoded "if-then" bottlenecks. |
 
 ---
@@ -115,11 +115,12 @@ sequenceDiagram
     Oracle->>APIs: AI Risk Analysis (OpenAI GPT-4o-mini)
     APIs-->>Oracle: Return Analysis
     
-    Oracle->>Oracle: Sign Result (DON Key)
+    Oracle->>Oracle: Sign Result with "Triple Lock"
+    Note right of Oracle: (Identity + Value + Time Locks)
     Oracle-->>Agent: Signed Result (Score, Verdict, Sig)
     
     Agent->>Vault: swapWithOracle(...)
-    Vault->>Vault: Verify DON Signature -> Execute
+    Vault->>Vault: Verify Triple Lock Signature -> Execute
 ```
 
 ---
@@ -158,8 +159,11 @@ const [price, entropy, security] = await Promise.all([ ... ]);
 docker build -t aegis-dev .
 docker run -it --name aegis_dev aegis-dev bash
 
-# Execute the "Video-Ready" Test Script
+# Execute Phase 1: AI Risk Analysis
 ./test-aegis.ps1
+
+# Execute Phase 2: Cryptographic Security Proofs
+./test-crypto.ps1
 ```
 
 ---
