@@ -394,11 +394,15 @@ Do NOT include any other fields. Do NOT override the math based on token reputat
     const entropyHex = entropy.startsWith('0x') ? entropy.slice(2) : entropy;
     const salt = `0x${entropyHex.padStart(64, '0')}` as Hex;
 
-    // Create message hash - matches Solidity's keccak256(abi.encodePacked(...))
+    // Convert asking price to integer (8 decimals) for signing
+    const askingPriceWei = BigInt(Math.round(Number(requestData.askingPrice || "0") * 1e8));
+
+    // Create message hash - includes amount to prevent tampering
+    // matches Solidity's keccak256(abi.encodePacked(...))
     const messageHash = keccak256(
         encodePacked(
-            ['address', 'uint256', 'string', 'uint8', 'bytes32'],
-            [requestData.tokenAddress as `0x${string}`, BigInt(requestData.chainId), decision, riskScore, salt]
+            ['address', 'uint256', 'uint256', 'string', 'uint8', 'bytes32'],
+            [requestData.tokenAddress as `0x${string}`, BigInt(requestData.chainId), askingPriceWei, decision, riskScore, salt]
         )
     );
 
@@ -416,6 +420,7 @@ Do NOT include any other fields. Do NOT override the math based on token reputat
     const signedResult = {
         tokenAddress: requestData.tokenAddress,
         chainId: requestData.chainId,
+        askingPrice: requestData.askingPrice || "0",
         decision: decision,
         riskScore: riskScore,
         salt: salt,

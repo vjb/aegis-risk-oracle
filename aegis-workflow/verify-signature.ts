@@ -41,6 +41,7 @@ async function verifyDONSignature(
     signedResult: {
         tokenAddress: string;
         chainId: string;
+        askingPrice: string;
         decision: string;
         riskScore: number;
         salt: Hex;
@@ -52,10 +53,11 @@ async function verifyDONSignature(
     // 1. Reconstruct the message hash (same as what DON signed)
     const reconstructedHash = keccak256(
         encodePacked(
-            ['address', 'uint256', 'string', 'uint8', 'bytes32'],
+            ['address', 'uint256', 'uint256', 'string', 'uint8', 'bytes32'],
             [
                 signedResult.tokenAddress as `0x${string}`,
                 BigInt(signedResult.chainId),
+                BigInt(Math.round(Number(signedResult.askingPrice || "0") * 1e8)),
                 signedResult.decision,
                 signedResult.riskScore,
                 signedResult.salt
@@ -104,10 +106,11 @@ async function createForgedSignature(originalResult: any): Promise<any> {
     // Recalculate message hash for the forged data
     forgedResult.messageHash = keccak256(
         encodePacked(
-            ['address', 'uint256', 'string', 'uint8', 'bytes32'],
+            ['address', 'uint256', 'uint256', 'string', 'uint8', 'bytes32'],
             [
                 forgedResult.tokenAddress as `0x${string}`,
                 BigInt(forgedResult.chainId),
+                BigInt(Math.round(Number(forgedResult.askingPrice || "0") * 1e8)),
                 forgedResult.decision,
                 forgedResult.riskScore,
                 forgedResult.salt as Hex
@@ -125,6 +128,32 @@ async function createForgedSignature(originalResult: any): Promise<any> {
 }
 
 async function main() {
+    // Check if a JSON string was passed via command line
+    const jsonArg = process.argv[2];
+    if (jsonArg) {
+        try {
+            const data = JSON.parse(jsonArg);
+            console.log("\n" + "=".repeat(60));
+            console.log("🛡️  VERIFYING SIGNED RESULT...");
+            console.log("=".repeat(60));
+            console.log(`Token:     ${data.tokenAddress.substring(0, 10)}...`);
+            console.log(`Amount:    $${data.askingPrice}`);
+            console.log(`Decision:  ${data.decision}`);
+
+            const result = await verifyDONSignature(data);
+            if (result.valid) {
+                console.log(`\n${GREEN}✅ VALID: ${result.reason}${RESET}`);
+            } else {
+                console.log(`\n${RED}❌ INVALID: ${result.reason}${RESET}`);
+                console.log(`   Warning: Data has been tampered with or is spoofed.`);
+            }
+            console.log("=".repeat(60) + "\n");
+            process.exit(0);
+        } catch (e) {
+            // If not JSON, continue to normal demo
+        }
+    }
+
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("    🔐 AEGIS SIGNATURE VERIFICATION DEMO");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -137,12 +166,14 @@ async function main() {
 
     // Create a sample signed result (simulating what the workflow outputs)
     const sampleSalt = "0x" + "a1b2c3d4e5f6".padStart(64, '0') as Hex;
+    const sampleAskingPrice = "2100.00";
     const sampleHash = keccak256(
         encodePacked(
-            ['address', 'uint256', 'string', 'uint8', 'bytes32'],
+            ['address', 'uint256', 'uint256', 'string', 'uint8', 'bytes32'],
             [
                 "0x4200000000000000000000000000000000000006" as `0x${string}`,
                 BigInt("8453"),
+                BigInt(Math.round(Number(sampleAskingPrice) * 1e8)),
                 "EXECUTE",
                 0,
                 sampleSalt
@@ -154,6 +185,7 @@ async function main() {
     const validSignedResult = {
         tokenAddress: "0x4200000000000000000000000000000000000006",
         chainId: "8453",
+        askingPrice: sampleAskingPrice,
         decision: "EXECUTE",
         riskScore: 0,
         salt: sampleSalt,
@@ -167,6 +199,7 @@ async function main() {
     // ═══════════════════════════════════════════════════════════════════════════
     console.log(`\n${BOLD}━━━ TEST 1: Valid Signature Verification ━━━${RESET}`);
     console.log(`Token:     ${validSignedResult.tokenAddress.substring(0, 10)}...`);
+    console.log(`Amount:    $${validSignedResult.askingPrice}`);
     console.log(`Decision:  ${GREEN}${validSignedResult.decision}${RESET}`);
     console.log(`Salt:      ${validSignedResult.salt.substring(0, 18)}...`);
     console.log(`Signature: ${validSignedResult.signature.substring(0, 22)}...`);
@@ -221,6 +254,30 @@ async function main() {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
+    //  TEST 4: Tamper Attack Detection (Changing Amount)
+    // ═══════════════════════════════════════════════════════════════════════════
+    console.log(`\n${BOLD}━━━ TEST 4: Tamper Attack Detection ━━━${RESET}`);
+    console.log(`Original:  $${validSignedResult.askingPrice} → ${GREEN}VALID${RESET}`);
+
+    // Attacker tries to change the price to $5000 in the signed payload
+    const tamperedResult = {
+        ...validSignedResult,
+        askingPrice: "5000.00",
+        salt: ("0x" + "fee1dead".padStart(64, '0')) as Hex // New salt to avoid replay block
+    };
+
+    console.log(`Tampered:  $${tamperedResult.askingPrice} (Modified after signing)`);
+    console.log(`Signature: ${tamperedResult.signature.substring(0, 22)}... (SAME)`);
+
+    const test4 = await verifyDONSignature(tamperedResult);
+    if (test4.valid) {
+        console.log(`\n${RED}⚠️  VULNERABLE: Tampered price accepted!${RESET}`);
+    } else {
+        console.log(`\n${GREEN}✅ BLOCKED: ${test4.reason}${RESET}`);
+        console.log(`   Crypto check failed because hash changed while signature remained static.`);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
     //  SUMMARY
     // ═══════════════════════════════════════════════════════════════════════════
     console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
@@ -229,6 +286,7 @@ async function main() {
     console.log(`    Test 1 (Valid Signature):   ${test1.valid ? GREEN + "PASSED ✓" : RED + "FAILED ✗"}${RESET}`);
     console.log(`    Test 2 (Replay Attack):     ${!test2.valid ? GREEN + "BLOCKED ✓" : RED + "VULNERABLE ✗"}${RESET}`);
     console.log(`    Test 3 (Spoof Attack):      ${!test3.valid ? GREEN + "BLOCKED ✓" : RED + "VULNERABLE ✗"}${RESET}`);
+    console.log(`    Test 4 (Tamper Attack):     ${!test4.valid ? GREEN + "BLOCKED ✓" : RED + "VULNERABLE ✗"}${RESET}`);
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 }
 
