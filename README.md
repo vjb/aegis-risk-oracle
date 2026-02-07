@@ -4,7 +4,7 @@
 
 Aegis is a production-ready risk oracle that prevents AI agents from executing scam trades by analyzing token security, detecting price manipulation, and providing cryptographically-signed risk assessments.
 
-**🔗 GitHub**: https://github.com/vjb/aegis-risk-orace
+**🔗 GitHub**: https://github.com/vjb/aegis-risk-oracle
 
 [![Chainlink](https://img.shields.io/badge/Chainlink-CRE-375BD2?style=flat&logo=chainlink)](https://chain.link)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -127,11 +127,12 @@ flowchart TB
 
 This project uses **Chainlink Runtime Environment (CRE)** as the orchestration layer:
 
-### CRE Files
-- **Workflow Implementation**: [aegis-workflow/main.ts](aegis-workflow/main.ts)
-- **Workflow Configuration**: [aegis-workflow/workflow.yaml](aegis-workflow/workflow.yaml)
-- **Runtime Config**: [aegis-workflow/config.staging.json](aegis-workflow/config.staging.json)
-- **Package Dependencies**: [aegis-workflow/package.json](aegis-workflow/package.json)
+### ⛓️ Chainlink CRE Files (Submission Requirements)
+- **Workflow Entry Point**: [aegis-workflow/main.ts](aegis-workflow/main.ts)
+- **Workflow Definition**: [aegis-workflow/workflow.yaml](aegis-workflow/workflow.yaml)
+- **Runtime Simulation Config**: [aegis-workflow/config.staging.json](aegis-workflow/config.staging.json)
+- **Node Environment**: [aegis-workflow/package.json](aegis-workflow/package.json)
+- **Project Structure**: [project.yaml](project.yaml)
 
 ### CRE SDK Usage
 ```typescript
@@ -300,6 +301,16 @@ But this is optional - the config file method is preferred for CRE workflows.
 
 ---
 
+## 🏰 Production vs. Demo Architecture
+
+To ensure a clear distinction between the hackathon simulation and a production environment, please note:
+
+- **The Oracle (CRE DON)**: High-level parallelization and LLM logic are fully implemented in `main.ts`. In production, this would be deployed to the Chainlink CRE Network.
+- **The Signature**: We use a **Mock DON Signature** (derived from quantum entropy) to demonstrate the verifiable hand-off. A real DON would use a threshold ECDSA signature.
+- **The Vault**: `contracts/AegisVault.sol` is provided as a **Reference Implementation**. In a live deployment, this contract would reside on a chain like Base Sepolia to cryptographically verify the Oracle's signed result before releasing funds.
+
+---
+
 ## 🛣️ Roadmap
 
 ### Current (Hackathon Demo)
@@ -343,7 +354,7 @@ MIT License - See [LICENSE](LICENSE) file
 
 Built for Chainlink Hackathon 2026 - Risk & Compliance Category
 
-**GitHub**: https://github.com/vjb/aegis-risk-orace  
+**GitHub**: https://github.com/vjb/aegis-risk-oracle  
 **Demo Video**: [Coming Soon - Recording in Progress]
 
 ---

@@ -8,6 +8,7 @@ const configSchema = z.object({
 type Config = z.infer<typeof configSchema>;
 
 // Request payload schema for risk assessment (with Zod validation)
+// 🚀 CRE BEST PRACTICE: Using Zod for strict input sanitization
 const requestSchema = z.object({
     tokenAddress: z.string().min(1, "Token address is required"),
     chainId: z.string().min(1, "Chain ID is required"),
@@ -64,7 +65,7 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
 
     runtime.log(`📋 Request: Token ${tokenAddress} on Chain ${chainId}`);
 
-    // Fetch real data from APIs using CRE SDK's HTTPClient
+    // 🚀 CRE CAPABILITY: Using HTTPClient for decentralized data fetching
     const httpClient = new cre.capabilities.HTTPClient();
 
     // 1-3. Fetch data parallelized (Price, Entropy, Security)
@@ -130,7 +131,9 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
         entropy: entropy
     };
 
-    // Get OpenAI API key from config (for simulation) or secrets (for DON)
+    // 🚀 CRE BEST PRACTICE: Using Runner Config for simulation & Secure Secrets for production
+    // This allows the workflow to be tested locally with a config file and 
+    // run securely on the DON using encrypted secrets.
     const openaiKey = runtime.config.openaiApiKey || await runtime.getSecret("OPENAI_API_KEY");
 
     const openaiRequestBody = JSON.stringify({
@@ -179,7 +182,7 @@ IMPORTANT: risk_score must be an integer from 0 to 10 only.`
     let aiResult: AIAnalysisResult;
 
     if (ok(aiResponse)) {
-        const aiData = json(aiResponse);
+        const aiData: any = json(aiResponse);
         const aiDecision = JSON.parse(aiData?.choices?.[0]?.message?.content || "{}");
 
         aiResult = {

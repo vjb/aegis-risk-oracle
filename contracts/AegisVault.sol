@@ -7,8 +7,8 @@ pragma solidity ^0.8.20;
  * In a real hackathon submission, this contract would be deployed to a testnet like Base Sepolia.
  */
 contract AegisVault {
-    address public donPublicKey;
-    mapping(bytes32 => bool) public processedRequests;
+    address public donPublicKey; // Authorized Aegis DON public key
+    mapping(bytes32 => bool) public processedRequests; // Replay protection
 
     struct RiskAssessment {
         string tokenAddress;
@@ -43,7 +43,8 @@ contract AegisVault {
         require(!processedRequests[requestHash], "Request already processed");
         
         // 3. Verify DON Signature (Mock Logic for Demo)
-        // In production: use ECDSA.recover to verify against donPublicKey
+        // 🔒 PRODUCTION SECURITY: Use ECDSA.recover(assessmentHash, signature) 
+        // to verify that this risk assessment was genuinely signed by the Aegis DON.
         require(_verifySignature(assessment, signature), "Invalid DON signature");
 
         // 4. Enforce Risk Policy
