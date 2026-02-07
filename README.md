@@ -24,6 +24,7 @@ AI agents (ElizaOS, LangChain, etc.) are increasingly executing autonomous DeFi 
 
 ## 🏗️ Architecture
 
+### 1. High-Level Interaction
 ```mermaid
 sequenceDiagram
     participant Agent as AI Agent (ElizaOS, LangChain, etc.)
@@ -55,6 +56,52 @@ sequenceDiagram
     Vault->>Vault: Verify DON Signature
     Vault->>Vault: Enforce Risk Policy (Score < 7 && EXECUTE)
     Vault->>Vault: Execute Swap
+```
+
+### 2. Internal Workflow Logic
+```mermaid
+---
+config:
+  layout: dagre
+---
+flowchart TB
+ subgraph Data_Fetching["Parallel Data Acquisition"]
+        FetchPrice["Fetch ETH Price<br>CoinGecko API"]
+        Handler["brainHandler Started"]
+        FetchEntropy["Fetch Quantum Entropy<br>QRNG API"]
+        FetchSecurity["Fetch Security Data<br>GoPlus Labs API"]
+  end
+ subgraph Analysis_Processing["Risk Synthesis"]
+        ParseJSON["Parse AI JSON Result"]
+        ResponseCheck{"Is AI Response OK?"}
+        Fallback["Execute Fallback Logic<br>Manual Honeypot Check"]
+  end
+ subgraph Logging["Verifiable Output"]
+        LogPrice["Log ETH Price"]
+        FinalState["Assign AIAnalysisResult"]
+        LogEntropy["Log Quantum Salt"]
+        LogDecision["Log AI Reasoning &amp; Verdict"]
+  end
+    Start(["main: Runner.run"]) --> Init["initWorkflow: HTTP Trigger"]
+    Init --> Handler
+    Handler --> FetchPrice & FetchEntropy & FetchSecurity
+    FetchPrice --> Aggregator["Aggregate Context Data"]
+    FetchEntropy --> Aggregator
+    FetchSecurity --> Aggregator
+    Aggregator --> GetSecret["Retrieve OPENAI_API_KEY"]
+    GetSecret --> AIRequest["Send Request to GPT-4o-mini"]
+    AIRequest --> ResponseCheck
+    ResponseCheck -- Yes --> ParseJSON
+    ResponseCheck -- No --> Fallback
+    ParseJSON --> FinalState
+    Fallback --> FinalState
+    FinalState --> LogPrice & LogEntropy & LogDecision
+    LogDecision --> End(["Return Final Verdict String"])
+
+    style Start fill:#f9f,stroke:#333
+    style End fill:#f9f,stroke:#333
+    style Analysis_Processing fill:#e1f5fe,stroke:#01579b
+    style Data_Fetching fill:#fff3e0,stroke:#e65100
 ```
 
 ### Key Components
