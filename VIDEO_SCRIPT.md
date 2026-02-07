@@ -60,7 +60,7 @@
 
 ### Test 1: PASS (30s)
 **Voiceover:**
-> "First, a legitimate trade: USDC on Base with a fair asking price. Watch as it fetches live data from all four APIs..."
+> "First, a legitimate trade: WETH on Base with a fair asking price. Watch as it fetches live data from all four APIs..."
 
 **Highlight in terminal:**
 - ✓ Payload validated

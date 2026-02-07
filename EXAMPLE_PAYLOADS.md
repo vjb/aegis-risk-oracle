@@ -18,28 +18,27 @@ interface RiskAssessmentRequest {
 
 ```json
 {
-  "tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "tokenAddress": "0x4200000000000000000000000000000000000006",
   "chainId": "8453",
   "askingPrice": "2050.00",
-  "amount": "1000000000",
+  "amount": "1.5",
   "userAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
 }
 ```
 
 **Why it passes:**
-- ✅ USDC on Base (trusted stablecoin)
-- ✅ Asking price ~$2050 is close to ETH market price (~$2040)
-- ✅ Not a honeypot
-- ✅ Well-known token address
+- ✅ **WETH on Base**: Matching the ETH market price logic.
+- ✅ **Fair Value**: Asking price ~$2050 matches current market value.
+- ✅ **Secure**: Not a honeypot, token is on the trust list.
+- ✅ **Reasonable Size**: Total value ($3,075) is below the $50k high-risk threshold.
 
 **Expected AI Response:**
-```json
 {
   "risk_score": 1-3,
   "decision": "EXECUTE",
-  "reasoning": "USDC is a trusted stablecoin, not a honeypot, asking price within reasonable range"
+  "reasoning": "Token is trusted WETH, price is fair, and trade volume is within normal limits."
 }
-```
+
 
 ## Example 2: FAIL - Suspicious Trade
 
@@ -56,10 +55,10 @@ interface RiskAssessmentRequest {
 ```
 
 **Why it fails:**
-- ⚠️ Suspicious token address (burn address)
-- ⚠️ Asking price $5000 is 2.4x market price (~$2040)
-- ⚠️ Likely scam/honeypot
-- ⚠️ Unknown token on BSC
+- ⚠️ **Suspicious Token**: Uses the burn address (`0x...001`).
+- ⚠️ **Price Manipulation**: Asking price $5000 is 2.4x the market price (~$2050).
+- ⚠️ **High Value**: Total trade value ($5,000,000) exceeds the safety threshold, prompting stricter scrutiny.
+- ⚠️ **Network**: Unknown token profile on BSC.
 
 **Expected AI Response:**
 ```json

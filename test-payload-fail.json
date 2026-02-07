@@ -6,6 +6,6 @@
     "tokenAddress": "0x0000000000000000000000000000000000000001",
     "chainId": "56",
     "askingPrice": "5000.00",
-    "amount": "1000000000",
+    "amount": "0.5",
     "userAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
 }
