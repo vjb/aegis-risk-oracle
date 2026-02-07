@@ -35,7 +35,7 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
             return
         }
 
-        # Format and Colorize logic
+        # Format and Colorize logic - High Priority Words First
         if ($line -match "REJECT") {
             Write-Host $rawLine -ForegroundColor Red -NoNewline; Write-Host ""
         } elseif ($line -match "EXECUTE") {
