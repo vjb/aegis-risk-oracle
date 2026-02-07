@@ -63,8 +63,9 @@ Unlike traditional risk filters that use static "if-then" logic, Aegis leverages
 
 ### 🛠️ AI Evaluation Flow
 ```mermaid
-graph TD
+flowchart TD
     subgraph Data_Inputs ["Step 1: Raw Signals"]
+        direction LR
         A[Price Delta]
         B[Security Flags]
         C[Trade Value]
