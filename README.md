@@ -54,12 +54,55 @@ AI agents are increasingly executing autonomous trades, yet they lack built-in s
 Unlike traditional risk filters that use static "if-then" logic, Aegis leverages GPT-4o-mini as a **Contextual Synthesis Layer**.
 
 ### Static Code vs. Aegis AI Officer
-| Feature | Static Logic (TradFi) | Aegis AI Risk Officer |
-| :--- | :--- | :--- |
-| **Data Noise** | Fails on unexpected data. | Contextually interprets "noisy" API responses. |
-| **Risk Patterns** | Hardcoded checks. | Identifies complex, multi-factor scam patterns. |
-| **Synthesis** | Binary: Pass or Fail. | Weighted reasoning: Evaluates the *totality* of risk. |
 | **Transparency** | Returns a 403 status. | Returns signed, human-readable reasoning. |
+
+---
+
+## 🔒 The "Triple Lock" Security Standard
+
+Aegis implements an **Institutional-Grade Security Layer** that goes beyond simple signatures. We protect the oracle payload with three cryptographic locks, ensuring that mid-flight tampering or signature hijacking is impossible.
+
+### 🛡️ Why we are Secure-by-Default:
+1.  **Identity Lock (`userAddress`)**: The signature is cryptographically bound to the user's wallet. An attacker cannot "harvest" a valid agreement and use it for themselves.
+2.  **Value Lock (`askingPrice`)**: The agreement is bound to the exact price at the time of signing. Even a 1-cent change invalidates the proof.
+3.  **Time Lock (`timestamp`)**: Approvals expire after **5 minutes**. This prevents late-execution or "time-travel" attacks.
+4.  **Replay Protection (`salt`)**: Every signature is unique. The smart contract tracks the quantum-derived salt to prevent re-using an old approval.
+
+### 📊 Cryptographic Proof Flow
+```mermaid
+flowchart TD
+    subgraph DON ["Chainlink DON (Off-Chain)"]
+        D1[Analyze Risk] --> D2[Hash Payload]
+        subgraph Message_Hash ["Triple Lock Hashing"]
+            D2 --> H1["userAddress (Identity)"]
+            D2 --> H2["askingPrice (Value)"]
+            D2 --> H3["timestamp (Time)"]
+        end
+        D2 --> D3[Sign Hash with DON Private Key]
+    end
+
+    subgraph Transport ["Transmission (Untrusted)"]
+        T1[Potential Tamper Attempt]
+    end
+
+    subgraph Contract ["AegisVault.sol (On-Chain)"]
+        C1[Reconstruct Hash] --> C2{Verify Signature}
+        C3{Check Time < 5m} --> C4{Check Salt Used}
+        C2 & C3 & C4 --> C5[Execute Trade]
+    end
+
+    DON --> Transport --> Contract
+    T1 -- "Any change to Value/User/Time" --> C1 -- "Hash Mismatch" --> Fail[REJECT TRANSACTION]
+```
+
+### 📂 Security Code & Proofs
+| Component | Responsibility | Source Link |
+| :--- | :--- | :--- |
+| **Logic (DON)** | Implementation of Triple Lock hashing & signing. | [main.ts](aegis-workflow/main.ts) |
+| **Verification** | "Digital Twin" of the On-Chain verification logic. | [verify-signature.ts](aegis-workflow/verify-signature.ts) |
+| **Security Proofs** | Live demo of Hijack, Tamper, and Replay detection. | [test-crypto.ps1](test-crypto.ps1) |
+
+---
 
 ### 🛠️ AI Evaluation Flow
 ```mermaid
