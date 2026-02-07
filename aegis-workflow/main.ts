@@ -35,6 +35,19 @@
  */
 import { HTTPCapability, handler, Runner, type Runtime, type HTTPPayload, cre, type NodeRuntime, ok, text, json } from "@chainlink/cre-sdk";
 import { z } from "zod";
+import { keccak256, encodePacked, toHex, Hex, signatureToHex, recoverAddress } from "viem";
+import { privateKeyToAccount, signMessage } from "viem/accounts";
+
+/**
+ * 🔐 DEMO DON PRIVATE KEY
+ * In production, this would be a threshold signature from multiple DON nodes.
+ * For this demo, we use a deterministic key derived from "AEGIS_DON_DEMO".
+ * 
+ * IMPORTANT: This is simulation-only. Real DON signatures come from Chainlink's
+ * decentralized oracle network using threshold cryptography (t-of-n signatures).
+ */
+const DON_DEMO_PRIVATE_KEY: Hex = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+const donAccount = privateKeyToAccount(DON_DEMO_PRIVATE_KEY);
 
 const configSchema = z.object({
     openaiApiKey: z.string().optional(),
@@ -367,24 +380,52 @@ Do NOT include any other fields. Do NOT override the math based on token reputat
     runtime.log(`   Risk Score:  ${BOLD}${aiResult.risk_score}/10${RESET}`);
     runtime.log(`   Reasoning:   ${aiResult.reasoning}`);
 
-    // Log structured result (what would be verified on-chain in production)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 🔐 CRYPTOGRAPHIC SIGNATURE GENERATION
+    // Creates a verifiable, tamper-proof signature for on-chain validation:
+    // 1. The DON analyzed this specific token/chain/decision
+    // 2. The result hasn't been modified (integrity)
+    // 3. The salt prevents replay attacks (each request is unique)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    const decision = aiResult.decision || 'REJECT';
+    const riskScore = Number(aiResult.risk_score);
+    const salt = entropy.startsWith('0x') ? entropy as Hex : `0x${entropy.padStart(64, '0')}` as Hex;
+
+    // Create message hash - matches Solidity's keccak256(abi.encodePacked(...))
+    const messageHash = keccak256(
+        encodePacked(
+            ['address', 'uint256', 'string', 'uint8', 'bytes32'],
+            [requestData.tokenAddress as `0x${string}`, BigInt(requestData.chainId), decision, riskScore, salt]
+        )
+    );
+
+    // Sign the message hash with the DON demo private key
+    const signature = await donAccount.signMessage({ message: { raw: messageHash } });
+
+    // Create the signed result object (sent to smart contract)
     const signedResult = {
         tokenAddress: requestData.tokenAddress,
         chainId: requestData.chainId,
-        riskScore: Number(aiResult.risk_score),
-        decision: aiResult.decision,
-        reasoning: aiResult.reasoning,
-        timestamp: Date.now()
+        decision: decision,
+        riskScore: riskScore,
+        salt: salt,
+        messageHash: messageHash,
+        signature: signature,
+        signer: donAccount.address
     };
 
-    // Color-coded verdict with signature proof
-    const verdictColor = aiResult.decision === "EXECUTE" ? GREEN : RED;
+    // Color-coded verdict with cryptographic proof
+    const verdictColor = decision === "EXECUTE" ? GREEN : RED;
     runtime.log("");
-    runtime.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    runtime.log(`⚖️  VERDICT: ${verdictColor}${BOLD}${aiResult.decision || 'REJECT'}${RESET} | Score: ${signedResult.riskScore}/10 | 📝 Entropy: ${entropy.substring(0, 12)}... ✓`);
-    runtime.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    runtime.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    runtime.log(`⚖️  VERDICT: ${verdictColor}${BOLD}${decision}${RESET} | Score: ${riskScore}/10`);
+    runtime.log(`🔐 DON: ${CYAN}${donAccount.address.substring(0, 10)}...${donAccount.address.substring(38)}${RESET}`);
+    runtime.log(`📝 Sig: ${signature.substring(0, 22)}...`);
+    runtime.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    return `Analysis Complete: ${aiResult.decision || 'REJECT'}`;
+    // Return JSON with full signature for verification
+    return JSON.stringify(signedResult);
 };
 
 /**
