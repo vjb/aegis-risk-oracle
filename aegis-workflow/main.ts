@@ -386,10 +386,8 @@ Do NOT include any other fields. Do NOT override the math based on token reputat
 
     runtime.log("");
     runtime.log("━━━ 📝  SIGNED RESULT ━━━");
-    runtime.log(`   Decision:  ${verdictColor}${signedResult.decision}${RESET}`);
-    runtime.log(`   Score:     ${signedResult.riskScore}/10`);
-    runtime.log(`   Entropy:   ${entropy.substring(0, 16)}...`);
-    runtime.log(`   DON:       0x742d...Eb (Verified)`);
+    runtime.log(`   Decision: ${verdictColor}${signedResult.decision}${RESET} | Score: ${signedResult.riskScore}/10 | Entropy: ${entropy.substring(0, 16)}...`);
+    runtime.log(`   DON: 0x742d...Eb (Verified)`);
 
     return `Analysis Complete: ${aiResult.decision || 'REJECT'}`;
 };
