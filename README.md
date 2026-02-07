@@ -200,4 +200,31 @@ docker run -it --name aegis_dev aegis-dev bash
 
 ---
 
+---
+
+## 🤖 Developer's Hub: Agent Integration
+
+Aegis is built to be the security standard for autonomous agents. Integrating Aegis into your agent (ElizaOS, LangChain, etc.) ensures that every trade intent is validated against a decentralized risk engine before it hits the chain.
+
+### 🛡️ Aegis ElizaOS Plugin (Draft)
+We've provided a draft implementation for ElizaOS in the `integrations/elizaos/` directory:
+*   **`aegis-plugin.ts`**: Intercepts `SWAP` and `BUY` intents. It automatically calls the Aegis Oracle and blocks the trade if the risk score is too high.
+*   **`aegis-provider.ts`**: A cryptographic utility that allows the agent to verify the DON's signature locally. **This is the "Safe Agent" standard.**
+
+### 🛠️ Integration Example
+```typescript
+// Intercept intent and check risk
+const oracleResponse = await aegisPlugin.handler(runtime, intent);
+
+if (oracleResponse.decision === "REJECT") {
+    agent.say(`Trade blocked: ${oracleResponse.reasoning}`);
+    return; // Safety lock
+}
+
+// If approved, sign with the Oracle's verifiable verdict
+executeTransaction(intent, oracleResponse.signature);
+```
+
+---
+
 **⚠️ Disclaimer**: This is a hackathon demo. Not audited for production use.
