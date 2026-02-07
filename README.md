@@ -119,7 +119,7 @@ echo '/app/test-payload-pass.json' | cre workflow simulate ./aegis-workflow --ta
 
 ## 🧪 Test Scenarios
 
-### 1. PASS: Trusted Token (USDC on Base)
+### 1. PASS: Trusted Token (WETH on Base)
 ```bash
 docker exec aegis_dev sh -c "cd /app && echo '/app/test-payload-pass.json' | cre workflow simulate ./aegis-workflow --target staging-settings"
 ```
@@ -226,6 +226,7 @@ But this is optional - the config file method is preferred for CRE workflows.
 - 🌐 **Cross-Chain**: Works on any EVM blockchain
 - ⚡ **Real-Time**: Live API integrations (no mock data)
 - 📝 **Audit Trail**: All decisions (EXECUTE/REJECT) are signed
+- 💰 **Value Analysis**: Flags high-value trades (> $50k USD) for enhanced scrutiny
 
 ---
 
