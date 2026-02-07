@@ -9,40 +9,51 @@ Write-Host "  🛡️  AEGIS RISK ORACLE - TEST SUITE" -ForegroundColor Cyan
 Write-Host "════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 
 # Function to run a single test scenario
-# It executes the CRE simulation inside the Docker container and filters the output
+# It executes the CRE simulation inside the Docker container and filters/colors the output in real-time
 function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
     Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $Color
     Write-Host "📊 $ScenarioName" -ForegroundColor $Color
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $Color
     
-    # Run the simulation inside the docker container
     $cmd = "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload $PayloadFile"
     
-    # Execute and filter output
-    $output = docker exec aegis_dev sh -c "$cmd" 2>&1
-    
-    $cleanOutput = $output | 
-        Select-String -NotMatch `
-            "Added experimental chain", `
-            "Warning: using default private key", `
-            "Workflow compiled", `
-            "Created HTTP trigger", `
-            "msg=`"context canceled`"", `
-            "Skipping WorkflowEngineV2", `
-            "Please provide JSON input", `
-            "Workflow Simulation Result:", `
-            "Analysis Complete:", `
-            "Enter your input" |
-        ForEach-Object { $_.ToString().Trim() }
-    
-    # Only print non-empty lines to keep it tight
-    foreach ($line in $cleanOutput) {
-        if ($line.Trim() -ne "") {
-            Write-Host $line
+    # Execute and stream output in real-time
+    docker exec aegis_dev sh -c "$cmd" 2>&1 | ForEach-Object {
+        $rawLine = $_.ToString()
+        $line = $rawLine.Trim()
+        
+        # Skip noise
+        if ($line -match "Added experimental chain" -or 
+            $line -match "Warning: using default private key" -or
+            $line -match "Workflow compiled" -or
+            $line -match "Created HTTP trigger" -or
+            $line -match "msg=`"context canceled`"" -or
+            $line -match "Skipping WorkflowEngineV2" -or
+            $line -match "Workflow Simulation Result:" -or
+            $line -match "Analysis Complete:" -or
+            [string]::IsNullOrWhiteSpace($line)) {
+            return
+        }
+
+        # Format and Colorize logic
+        if ($line -match "REJECT") {
+            Write-Host $rawLine -ForegroundColor Red -NoNewline; Write-Host ""
+        } elseif ($line -match "EXECUTE") {
+            Write-Host $rawLine -ForegroundColor Green -NoNewline; Write-Host ""
+        } elseif ($line -match "\[AEGIS\]" -or $line -match "\[PRICE\]" -or $line -match "\[ENTROPY\]") {
+            Write-Host $rawLine -ForegroundColor Cyan -NoNewline; Write-Host ""
+        } elseif ($line -match "✓" -or $line -match "✅") {
+            Write-Host $rawLine -ForegroundColor Green -NoNewline; Write-Host ""
+        } elseif ($line -match "⚠️" -or $line -match "🤖") {
+            Write-Host $rawLine -ForegroundColor Yellow -NoNewline; Write-Host ""
+        } elseif ($line -match "📝" -or $rawLine.StartsWith("   ")) {
+            Write-Host $rawLine -ForegroundColor White -NoNewline; Write-Host ""
+        } else {
+            Write-Host $rawLine -NoNewline; Write-Host ""
         }
     }
 
-    Write-Host "✅ Expected: $ExpectedNote" -ForegroundColor Yellow
+    Write-Host "`n✅ Expected: $ExpectedNote" -ForegroundColor Yellow
 }
 
 # Run All Scenarios

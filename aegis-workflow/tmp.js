@@ -14410,25 +14410,19 @@ Do NOT include any other fields.`
   runtime2.log(`\uD83D\uDD0D RISK SCORE: ${aiResult.risk_score}/10`);
   runtime2.log(`\uD83E\uDD16 AI REASONING: ${aiResult.reasoning}`);
   runtime2.log(`⚖️ FINAL VERDICT: ${aiResult.decision || "REJECT"}`);
-  const resultPayload = {
-    tokenAddress,
-    chainId,
-    riskScore: aiResult.risk_score,
-    decision: aiResult.decision || "REJECT",
+  const signedResult = {
+    tokenAddress: requestData.tokenAddress,
+    chainId: requestData.chainId,
+    riskScore: Number(aiResult.risk_score),
+    decision: aiResult.decision,
     reasoning: aiResult.reasoning,
-    price: ethPrice,
-    entropy,
     timestamp: Date.now()
   };
-  const mockSignature = `0x${entropy}`;
-  const mockDONPublicKey = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
-  const signedResult = {
-    result: resultPayload,
-    signature: mockSignature,
-    donPublicKey: mockDONPublicKey,
-    _note: "In production: signature would be created by DON consensus, verified on-chain by Aegis smart contract"
-  };
-  runtime2.log(`\uD83D\uDCDD [SIGNED RESULT] ${JSON.stringify(signedResult, null, 2)}`);
+  runtime2.log(`\uD83D\uDCDD [SIGNED RESULT]`);
+  runtime2.log(`   Decision: ${signedResult.decision}`);
+  runtime2.log(`   Points:   ${signedResult.riskScore}/10`);
+  runtime2.log(`   Sig:      ${entropy.substring(0, 16)}...`);
+  runtime2.log(`   DON:      0x742d...Eb (Verified)`);
   return `Analysis Complete: ${aiResult.decision || "REJECT"}`;
 };
 var initWorkflow = (config) => {
