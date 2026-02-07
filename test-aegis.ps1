@@ -27,10 +27,11 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
             $line -match "Warning: using default private key" -or
             $line -match "Workflow compiled" -or
             $line -match "Created HTTP trigger" -or
-            $line -match "msg=`"context canceled`"" -or
+            $line -match 'msg="context canceled"' -or
             $line -match "Skipping WorkflowEngineV2" -or
             $line -match "Workflow Simulation Result:" -or
             $line -match "Analysis Complete:" -or
+            $line -match '^\s*"\{.*tokenAddress.*\}"' -or
             [string]::IsNullOrWhiteSpace($line)) {
             return
         }
