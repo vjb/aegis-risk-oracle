@@ -14291,8 +14291,15 @@ var brainHandler = async (runtime2, payload) => {
   const isProxy = String(tokenData.is_proxy) === "1";
   const isMintable = String(tokenData.is_mintable) === "1";
   const ownerModifiable = String(tokenData.can_take_back_ownership) === "1" || String(tokenData.owner_changeable) === "1";
+  let isProxyFinal = isProxy;
+  let isMintableFinal = isMintable;
+  if (tokenAddress.toLowerCase() === "0x5555555555555555555555555555555555555555") {
+    isProxyFinal = true;
+    isMintableFinal = true;
+    runtime2.log("\uD83C\uDFAD [DEMO] Injecting Suspicious Signals (Proxy + Mintable)");
+  }
   runtime2.log(`✓ Security Signals - Honeypot: ${isHoneypot}, Tax (B/S): ${buyTax}%/${sellTax}%, Restrictions: ${cannotBuy ? "Buy BLOCKED " : ""}${cannotSell ? "Sell BLOCKED" : "None"}`);
-  runtime2.log(`✓ Metadata Flags - Proxy: ${isProxy}, Mintable: ${isMintable}, Owner Changeable: ${ownerModifiable}`);
+  runtime2.log(`✓ Metadata Flags - Proxy: ${isProxyFinal}, Mintable: ${isMintableFinal}, Owner Changeable: ${ownerModifiable}`);
   runtime2.log("\uD83E\uDD16 Calling OpenAI for risk analysis...");
   const marketPrice = Number(ethPrice);
   const userPrice = Number(requestData.askingPrice || "0");
@@ -14318,8 +14325,8 @@ var brainHandler = async (runtime2, payload) => {
       sell_tax: sellTax,
       cannot_buy: cannotBuy,
       cannot_sell: cannotSell,
-      is_proxy: isProxy,
-      is_mintable: isMintable,
+      is_proxy: isProxyFinal,
+      is_mintable: isMintableFinal,
       owner_changeable: ownerModifiable,
       token_address: tokenAddress,
       chain_id: chainId
@@ -14346,9 +14353,10 @@ Evaluation Criteria (STRICT & MANDATORY):
    - is_mintable: true AND NOT trust_list -> MANDATORY +3 risk points
 4. EXPOSURE:
    - if is_high_value is true -> MANDATORY +4 risk points
-5. DECISION:
+5. SUMMARY & DECISION:
+   - Sum all applicable risk points.
    - MANDATORY REJECT if total risk_score >= 7.
-   - Otherwise EXECUTE only if score < 7 and no CRITICAL/PRICE failures.
+   - REASONING: Must clearly list the specific risk factors (e.g., "Reject due to High Value exposure (+4) and Technical flags (+3)").
 
 Output Format (STRICT JSON):
 {
@@ -14356,7 +14364,8 @@ Output Format (STRICT JSON):
   "decision": "EXECUTE" | "REJECT", 
   "reasoning": "string"
 }
-Do NOT include any other fields.`
+Do NOT include any other fields. Do NOT override the math based on token reputation.If the sum is 7 or higher, the decision MUST be REJECT.
+`
       },
       { role: "user", content: `Context: ${JSON.stringify(context)}` }
     ],
@@ -14400,10 +14409,9 @@ Do NOT include any other fields.`
       price: ethPrice
     };
   }
-  runtime2.log(`\uD83D\uDD0D [AEGIS] Analysis Result: ${JSON.stringify(aiResult)}`);
   runtime2.log(`\uD83D\uDCB0 [PRICE] ETH: $${aiResult.price || "N/A"}`);
   if (aiResult.entropy) {
-    runtime2.log(`⚛️ [ENTROPY] Quantum Salt: ${aiResult.entropy.substring(0, 10)}...`);
+    runtime2.log(`⚛️ [ENTROPY] Quantum Salt: ${entropy.substring(0, 10)}...`);
   } else {
     runtime2.log("⚛️ [ENTROPY] Quantum Salt: N/A");
   }

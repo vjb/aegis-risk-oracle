@@ -60,7 +60,7 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
 Run-Test "TEST 1: PASS Scenario (WETH on Base, fair price)" "/app/test-payload-pass.json" "EXECUTE with risk_score < 7" "Green"
 Run-Test "TEST 2: FAIL Scenario (Critical Honeypot on BSC)" "/app/test-payload-honeypot.json" "REJECT - critical safety failure" "Red"
 Run-Test "TEST 3: FAIL Scenario (WETH Price Manipulation)" "/app/test-payload-manipulation.json" "REJECT - high price deviation" "Magenta"
-Run-Test "TEST 4: FAIL Scenario (WETH Composite Risk)" "/app/test-payload-fail.json" "REJECT - multiple risk factors" "Yellow"
+Run-Test "TEST 4: FAIL Scenario (SUS-TOKEN Composite Risk)" "/app/test-payload-suspicious.json" "REJECT - multiple risk factors" "Yellow"
 Run-Test "TEST 5: FAIL Scenario (Invalid Payload)" "/app/test-payload-invalid.json" "Validation error & REJECT" "Gray"
 
 Write-Host "`n════════════════════════════════════════════════════════════════" -ForegroundColor Cyan

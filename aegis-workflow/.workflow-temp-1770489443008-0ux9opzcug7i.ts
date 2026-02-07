@@ -1,4 +1,4 @@
-import { HTTPCapability, handler, Runner, type Runtime, type HTTPPayload, cre, type NodeRuntime, ok, text, json } from "@chainlink/cre-sdk";
+import { HTTPCapability, handler, Runner, type Runtime, type HTTPPayload, cre, type NodeRuntime, ok, text, json, sendErrorResponse } from "@chainlink/cre-sdk";
 import { z } from "zod";
 
 const configSchema = z.object({
@@ -320,3 +320,5 @@ export async function main() {
     const runner = await Runner.newRunner<Config>({ configSchema });
     await runner.run(initWorkflow);
 }
+
+main().catch(sendErrorResponse)

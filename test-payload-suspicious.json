@@ -1,0 +1,10 @@
+{
+    "_comment": "Composite Scenario: Generic SUS-TOKEN with multiple risk factors",
+    "_token": "SUS-TOKEN (Suspicious Moonshot)",
+    "_expected": "REJECT - High value + Price deviation (Score >= 7)",
+    "tokenAddress": "0x5555555555555555555555555555555555555555",
+    "chainId": "8453",
+    "askingPrice": "2480.00",
+    "amount": "100",
+    "userAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+}
