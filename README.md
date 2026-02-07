@@ -24,17 +24,23 @@ AI agents (ElizaOS, LangChain, etc.) are increasingly executing autonomous DeFi 
 
 ## 🏗️ Architecture
 
-```
-AI Agent → HTTP POST → Aegis CRE Workflow → Signed Risk Assessment → Smart Contract
-                               ↓
-                    ┌──────────┴──────────┐
-                    │  Real-time Analysis │
-                    ├─────────────────────┤
-                    │ • CoinGecko (Price) │
-                    │ • GoPlus (Security) │
-                    │ • QRNG (Entropy)    │
-                    │ • OpenAI (AI Risk)  │
-                    └─────────────────────┘
+```mermaid
+sequenceDiagram
+    participant Agent as AI Agent (ElizaOS)
+    participant Oracle as Aegis Risk Oracle (CRE DON)
+    participant APIs as External APIs (CoinGecko, GoPlus, QRNG, OpenAI)
+    participant Vault as Aegis Vault (Smart Contract)
+
+    Agent->>Oracle: POST /risk-assessment (token, chain, amount)
+    Oracle->>APIs: Fetch Security & Price Data
+    APIs-->>Oracle: Return Data
+    Oracle->>Oracle: AI Decision Engine (Consensus)
+    Oracle->>Oracle: Sign Result (DON Key)
+    Oracle-->>Agent: Signed Risk result (Decision, Score, Sig)
+    Agent->>Vault: swapWithOracle(token, amount, signedResult, signature)
+    Vault->>Vault: Verify DON Signature
+    Vault->>Vault: Enforce Risk Policy (Score < 7 && EXECUTE)
+    Vault->>Vault: Execute Swap
 ```
 
 ### Key Components
@@ -177,6 +183,8 @@ chainhack/
 │   ├── workflow.yaml        # Workflow config (⭐ Chainlink)
 │   ├── config.staging.json  # Runtime config (⭐ Chainlink)
 │   └── package.json         # Dependencies (⭐ Chainlink SDK)
+├── contracts/               # Smart Contracts
+│   └── AegisVault.sol       # Reference on-chain verification
 ├── test-payload-pass.json   # Test: successful trade
 ├── test-payload-fail.json   # Test: rejected trade
 ├── test-payload-invalid.json # Test: validation error
