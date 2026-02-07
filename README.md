@@ -66,10 +66,7 @@ Unlike traditional risk filters that use static "if-then" logic, Aegis leverages
 flowchart TD
     subgraph Data_Inputs ["Step 1: Raw Signals"]
         direction LR
-        A[Price Delta]
-        B[Security Flags]
-        C[Trade Value]
-        D[Contract Metadata]
+        A[Price Delta] ~~~ B[Security Flags] ~~~ C[Trade Value] ~~~ D[Contract Metadata]
     end
 
     subgraph LLM_Synthesis ["Step 2: AI Synthesis Layer"]
