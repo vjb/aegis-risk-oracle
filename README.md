@@ -58,7 +58,32 @@ sequenceDiagram
     Vault->>Vault: Execute Swap
 ```
 
-### 2. Internal Workflow Logic
+### 2. AI Risk Officer Logic
+```mermaid
+flowchart TD
+    Start["AI Risk Officer Evaluation"] --> CriticalCheck{"Is Honeypot OR<br/>Restrictions?"}
+    CriticalCheck -- Yes --> Reject10["MANDATORY REJECT<br/>(Score: 10/10)"]
+    CriticalCheck -- No --> PriceCheck{"Price Deviation?"}
+    
+    PriceCheck -- "> 50%" --> Reject50["MANDATORY REJECT<br/>(Score: 10/10)"]
+    PriceCheck -- "15% - 50%" --> AmberPrice["Amber Flag<br/>(+4 Risk Points)"]
+    PriceCheck -- "< 15%" --> SafePrice["No Price Risk"]
+    
+    AmberPrice & SafePrice --> TechnicalCheck{"Technical Flags?<br/>(Proxy, Mintable, Tax)"}
+    TechnicalCheck -- Yes --> AmberTech["Amber Flag<br/>(+3-4 Risk Points)"]
+    TechnicalCheck -- No --> SafeTech["No Technical Risk"]
+    
+    AmberTech & SafeTech --> ExposureCheck{"Is High Value?<br/>(> $50k USD)"}
+    ExposureCheck -- Yes --> AmberExposure["Amber Flag<br/>(+4 Risk Points)"]
+    ExposureCheck -- No --> SafeExposure["No Exposure Risk"]
+    
+    AmberExposure & SafeExposure --> ScoreSum["Sum Total Risk Score"]
+    ScoreSum --> Threshold{"Total Score >= 7?"}
+    Threshold -- Yes --> RejectSum["REJECT<br/>Cumulative Risk"]
+    Threshold -- No --> ExecuteSafe["EXECUTE<br/>Safe to Trade"]
+```
+
+### 3. Internal Workflow Logic
 ```mermaid
 ---
 config:
@@ -76,11 +101,11 @@ flowchart TB
         ResponseCheck{"Is AI Response OK?"}
         Fallback["Execute Fallback Logic<br>Manual Honeypot Check"]
   end
- subgraph Logging["Verifiable Output"]
+ subgraph Logging["Verifies & Signs"]
         LogPrice["Log ETH Price"]
         FinalState["Assign AIAnalysisResult"]
         LogEntropy["Log Quantum Salt"]
-        LogDecision["Log AI Reasoning &amp; Verdict"]
+        LogDecision["Log AI Reasoning & Verdict"]
   end
     Start(["main: Runner.run"]) --> Init["initWorkflow: HTTP Trigger"]
     Init --> Handler
@@ -103,23 +128,6 @@ flowchart TB
     style Analysis_Processing fill:#e1f5fe,stroke:#01579b
     style Data_Fetching fill:#fff3e0,stroke:#e65100
 ```
-
-### Key Components
-
-1. **CRE Workflow** ([aegis-workflow/main.ts](aegis-workflow/main.ts))
-   - HTTP-triggered risk oracle
-   - **Parallelized Multi-API Fetching**: Optimized data retrieval logic
-   - Zod payload validation
-   - Signed result generation
-
-2. **Smart Contract** ([contracts/AegisVault.sol](contracts/AegisVault.sol))
-   - Verifies DON signatures on-chain
-   - Enforced risk policies before trade execution
-   - Prevents bypass of the Risk Oracle
-
-3. **Test Suite** ([test-aegis.sh](test-aegis.sh))
-   - Automated testing of PASS/FAIL/Invalid scenarios
-   - Demonstrates cross-chain capability
 
 ---
 
@@ -165,51 +173,32 @@ docker build -t aegis-dev .
 docker run -it --name aegis_dev aegis-dev bash
 
 # Inside container, run tests
-./test-aegis.sh
-```
-
-### Manual Setup
-
-```bash
-# Install dependencies
-cd aegis-workflow
-npm install
-
-# Set environment variables
-export OPENAI_API_KEY="sk-..."
-
-# Run simulation
-cd ..
-echo '/app/test-payload-pass.json' | cre workflow simulate ./aegis-workflow --target staging-settings
+./test-aegis.ps1
 ```
 
 ---
 
-## 🧪 Test Scenarios
+## 🧪 Multi-Factor Test Matrix
 
-### 1. PASS: Trusted Token (WETH on Base)
-```bash
-docker exec aegis_dev sh -c "cd /app && echo '/app/test-payload-pass.json' | cre workflow simulate ./aegis-workflow --target staging-settings"
-```
-**Expected**: ✅ EXECUTE, risk_score: 3-5
+The core value of Aegis is its ability to synthesize multiple data points to detect "amber" risks that aggregate into a "red" verdict.
 
-### 2. FAIL: Price Manipulation (2.4x markup)
-```bash
-docker exec aegis_dev sh -c "cd /app && echo '/app/test-payload-fail.json' | cre workflow simulate ./aegis-workflow --target staging-settings"
-```
-**Expected**: ❌ REJECT, risk_score: 6-10
+| Scenario | Sample Payload | Verdict | Multi-Factor Reasoning |
+| :--- | :--- | :--- | :--- |
+| **Pass** | `test-payload-pass.json` | ✅ `EXECUTE` | Low risk, fair market price, trusted token metadata. |
+| **Honeypot** | `test-payload-honeypot.json` | ❌ `REJECT` | **Critical Security Failure**: `is_honeypot: true` detected externally. |
+| **Manipulation** | `test-payload-manipulation.json` | ❌ `REJECT` | **Economic Attack**: Asking price is >50% markup over market price. |
+| **Composite** | `test-payload-fail.json` | ❌ `REJECT` | **Aggregate Risk**: Detected moderate markup (20%) + High-Value trade ($250k). |
+| **Invalid** | `test-payload-invalid.json` | ❌ `REJECT` | **Data Integrity**: Payload failed Zod schema validation. |
 
-### 3. Invalid: Missing Required Fields
-```bash
-docker exec aegis_dev sh -c "cd /app && echo '/app/test-payload-invalid.json' | cre workflow simulate ./aegis-workflow --target staging-settings"
-```
-**Expected**: ❌ Validation error with details
+---
 
-### Automated Test Suite
-```bash
-# Inside Docker container
-./test-aegis.sh
-```
+### 🔍 Understanding Simulation Logs
+
+While running simulations, you may see:
+`[SIMULATION] Skipping WorkflowEngineV2`
+
+> [!NOTE]
+> This is an **internal SDK message** indicating the simulator is running the workflow using the standard execution handler (`V1`) rather than the experimental `V2` engine. This is expected behavior for localized workflow simulations and does not affect the correctness of the analysis.
 
 ---
 

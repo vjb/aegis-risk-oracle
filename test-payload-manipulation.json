@@ -1,0 +1,10 @@
+{
+    "_comment": "Price Manipulation Scenario (Trusted Token)",
+    "_token": "WETH (Trusted)",
+    "_expected": "REJECT - Price deviation > 100%",
+    "tokenAddress": "0x4200000000000000000000000000000000000006",
+    "chainId": "8453",
+    "askingPrice": "6000.00",
+    "amount": "1",
+    "userAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+}

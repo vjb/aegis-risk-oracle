@@ -1,11 +1,9 @@
 {
-    "_comment": "FAIL Scenario - Suspicious token with 2.4x price markup (price manipulation)",
-    "_token": "Burn Address (0x000...001) - Suspicious/Unknown",
-    "_chain": "BSC/Binance Smart Chain (Chain ID 56)",
-    "_expected": "REJECT - High risk due to >50% price deviation from market",
-    "tokenAddress": "0x0000000000000000000000000000000000000001",
-    "chainId": "56",
-    "askingPrice": "5000.00",
-    "amount": "0.5",
+    "_comment": "Composite Scenario: WETH on Base with 20% markup (Suspicious combined with market data)",
+    "_expected": "REJECT - Combined points from markup and high value/suspicion",
+    "tokenAddress": "0x4200000000000000000000000000000000000006",
+    "chainId": "8453",
+    "askingPrice": "2500.00",
+    "amount": "100",
     "userAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
 }

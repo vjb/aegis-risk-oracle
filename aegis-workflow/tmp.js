@@ -5677,6 +5677,16 @@ var decodeJson = (input) => {
   const textBody = decoder.decode(input);
   return JSON.parse(textBody);
 };
+function text(responseOrFn) {
+  if (typeof responseOrFn === "function") {
+    return {
+      result: () => text(responseOrFn().result)
+    };
+  } else {
+    const decoder = new TextDecoder("utf-8");
+    return decoder.decode(responseOrFn.body).trim();
+  }
+}
 function json(responseOrFn) {
   if (typeof responseOrFn === "function") {
     return {
@@ -14249,8 +14259,17 @@ var brainHandler = async (runtime2, payload) => {
     }).result()
   ]);
   const priceData = ok(priceResult) ? json(priceResult) : null;
-  const ethPrice = String(priceData?.ethereum?.usd || "0");
-  runtime2.log(`✓ Price Check: $${ethPrice}`);
+  const priceStatus = ok(priceResult) ? priceResult.statusCode : 0;
+  let ethPrice;
+  let priceSource = "Market (CoinGecko)";
+  if (priceStatus === 200 && priceData?.ethereum?.usd) {
+    ethPrice = String(priceData.ethereum.usd);
+  } else {
+    ethPrice = "2065.00";
+    priceSource = priceStatus === 429 ? "Demo Fallback (Rate Limited)" : "Demo Fallback (API Error)";
+    runtime2.log(`⚠️ Price Fetch Failed (${priceStatus}), using fallback: $${ethPrice}`);
+  }
+  runtime2.log(`✓ Price Check: $${ethPrice} [${priceSource}]`);
   const entropyData = ok(entropyResult) ? json(entropyResult) : null;
   const entropyFromAPI = entropyData?.data?.[0];
   let entropy;
@@ -14265,15 +14284,43 @@ var brainHandler = async (runtime2, payload) => {
   const tokenData = securityData?.result?.[tokenAddress.toLowerCase()] || {};
   const isHoneypot = String(tokenData.is_honeypot) === "1";
   const trustList = String(tokenData.trust_list) === "1";
-  runtime2.log(`✓ Security Check - Honeypot: ${isHoneypot}, Trust: ${trustList}`);
+  const buyTax = Number(tokenData.buy_tax || "0");
+  const sellTax = Number(tokenData.sell_tax || "0");
+  const cannotBuy = String(tokenData.cannot_buy) === "1";
+  const cannotSell = String(tokenData.cannot_sell_all) === "1";
+  const isProxy = String(tokenData.is_proxy) === "1";
+  const isMintable = String(tokenData.is_mintable) === "1";
+  const ownerModifiable = String(tokenData.can_take_back_ownership) === "1" || String(tokenData.owner_changeable) === "1";
+  runtime2.log(`✓ Security Signals - Honeypot: ${isHoneypot}, Tax (B/S): ${buyTax}%/${sellTax}%, Restrictions: ${cannotBuy ? "Buy BLOCKED " : ""}${cannotSell ? "Sell BLOCKED" : "None"}`);
+  runtime2.log(`✓ Metadata Flags - Proxy: ${isProxy}, Mintable: ${isMintable}, Owner Changeable: ${ownerModifiable}`);
   runtime2.log("\uD83E\uDD16 Calling OpenAI for risk analysis...");
+  const marketPrice = Number(ethPrice);
+  const userPrice = Number(requestData.askingPrice || "0");
+  const isEthEquivalent = tokenAddress.toLowerCase().includes("0x4200000000000000000000000000000000000006") || tokenAddress.toLowerCase().includes("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2");
+  let deviationPercent = 0;
+  if (isEthEquivalent && marketPrice > 0) {
+    deviationPercent = Math.abs((userPrice - marketPrice) / marketPrice) * 100;
+  }
+  const totalValueUsd = Number(requestData.amount || "0") * userPrice;
+  const isHighValue = totalValueUsd > 50000;
   const context = {
-    current_price: ethPrice,
-    asking_price: requestData.askingPrice || null,
+    market_price_eth: marketPrice,
+    asking_price: userPrice,
+    price_deviation_percent: deviationPercent.toFixed(2),
+    is_price_comparison_valid: isEthEquivalent,
+    total_value_usd: totalValueUsd,
+    is_high_value: isHighValue,
     amount: requestData.amount || null,
     security_metadata: {
       is_honeypot: isHoneypot,
       trust_list: trustList,
+      buy_tax: buyTax,
+      sell_tax: sellTax,
+      cannot_buy: cannotBuy,
+      cannot_sell: cannotSell,
+      is_proxy: isProxy,
+      is_mintable: isMintable,
+      owner_changeable: ownerModifiable,
       token_address: tokenAddress,
       chain_id: chainId
     },
@@ -14286,24 +14333,30 @@ var brainHandler = async (runtime2, payload) => {
       {
         role: "system",
         content: `You are an autonomous Risk Officer for a DeFi protocol. Analyze security and price data.
+Response MUST be a valid JSON object.
 
-Evaluation Criteria:
-1. Honeypot Check: If is_honeypot is true, decision MUST be REJECT
-2. Price Manipulation: If asking_price deviates >50% from current_price, decision MUST be REJECT
-3. High Risk: If risk_score >= 7, decision MUST be REJECT
-4. High Value: If (amount * asking_price) > 50,000 USD, increase risk score by 1-2 points
-5. Trust: If trust_list is true, lower risk score by 2-3 points
-6. Price Analysis: If asking_price is provided, compare to current_price. Flag deviations >10%
-7. Risk Score Range: MUST be between 0 and 10 (where 0=lowest risk, 10=highest risk)
+Evaluation Criteria (STRICT & MANDATORY):
+1. CRITICAL: If is_honeypot is true OR cannot_buy is true OR cannot_sell is true -> MANDATORY REJECT (Score 10).
+2. PRICE (is_price_comparison_valid is true):
+   - if price_deviation_percent > 50% -> MANDATORY REJECT (Score 10)
+   - if price_deviation_percent > 15% -> MANDATORY +4 risk points
+3. TECHNICAL:
+   - buy_tax > 5% OR sell_tax > 5% -> MANDATORY +3 risk points
+   - is_proxy: true -> MANDATORY +3 risk points
+   - is_mintable: true AND NOT trust_list -> MANDATORY +3 risk points
+4. EXPOSURE:
+   - if is_high_value is true -> MANDATORY +4 risk points
+5. DECISION:
+   - MANDATORY REJECT if total risk_score >= 7.
+   - Otherwise EXECUTE only if score < 7 and no CRITICAL/PRICE failures.
 
-Decision Rules:
-- REJECT: Honeypot OR price deviation >50% OR risk_score >= 7
-- EXECUTE: Otherwise
-
-Output Format (MUST be valid JSON):
-{ "risk_score": number, "decision": "EXECUTE" | "REJECT", "reasoning": "string" }
-
-IMPORTANT: risk_score must be an integer from 0 to 10 only.`
+Output Format (STRICT JSON):
+{
+  "risk_score": number, 
+  "decision": "EXECUTE" | "REJECT", 
+  "reasoning": "string"
+}
+Do NOT include any other fields.`
       },
       { role: "user", content: `Context: ${JSON.stringify(context)}` }
     ],
@@ -14322,17 +14375,24 @@ IMPORTANT: risk_score must be an integer from 0 to 10 only.`
   let aiResult;
   if (ok(aiResponse)) {
     const aiData = json(aiResponse);
-    const aiDecision = JSON.parse(aiData?.choices?.[0]?.message?.content || "{}");
+    const rawContent = aiData?.choices?.[0]?.message?.content || "{}";
+    runtime2.log(`\uD83E\uDD16 Raw AI Response: ${rawContent}`);
+    const aiDecision = JSON.parse(rawContent);
+    const score = Number(aiDecision.risk_score ?? aiDecision.final_risk_score ?? 5);
+    const decision = String(aiDecision.decision || (score >= 7 ? "REJECT" : "EXECUTE")).toUpperCase();
     aiResult = {
-      risk_score: Number(aiDecision.risk_score || 5),
-      decision: String(aiDecision.decision || "EXECUTE"),
-      reasoning: String(aiDecision.reasoning || "AI analysis completed"),
+      risk_score: score,
+      decision: decision === "REJECT" || score >= 7 ? "REJECT" : "EXECUTE",
+      reasoning: typeof aiDecision.reasoning === "object" ? JSON.stringify(aiDecision.reasoning) : String(aiDecision.reasoning || "AI analysis completed"),
       entropy,
       price: ethPrice
     };
     runtime2.log("✓ AI Analysis Complete");
   } else {
-    runtime2.log("⚠️ AI API failed, using fallback analysis");
+    const statusCode = aiResponse ? aiResponse.statusCode : "Unknown";
+    const errorBody = aiResponse ? text(aiResponse) : "No Response Body";
+    runtime2.log(`⚠️ AI API failed (Status: ${statusCode})`);
+    runtime2.log(`❌ Error: ${errorBody.substring(0, 500)}`);
     aiResult = {
       risk_score: isHoneypot ? 10 : 5,
       decision: isHoneypot ? "REJECT" : "EXECUTE",

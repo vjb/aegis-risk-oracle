@@ -1,0 +1,10 @@
+{
+    "_comment": "Critical Honeypot Scenario",
+    "_token": "Known Honeypot (BSC)",
+    "_expected": "REJECT - is_honeypot: true",
+    "tokenAddress": "0x7339601174cC7d7b8b5d87D026a3e41Ee0D3bbfE",
+    "chainId": "56",
+    "askingPrice": "2050.00",
+    "amount": "0.1",
+    "userAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+}
