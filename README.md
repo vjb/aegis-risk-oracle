@@ -128,7 +128,7 @@ We tested Aegis against real-world threats to ensure robustness.
 
 | Scenario | Focus | Verdict | Reason |
 | :--- | :--- | :--- | :--- |
-| **WETH (Base)** | Fair Trade | ✅ **EXECUTE** | Trusted Asset, Low Deviation (<1%). |
+| **WETH / LINK (Base)** | Fair Trade | ✅ **EXECUTE** | Trusted Asset, Low Deviation (<1%). |
 | **Honeypot** | Security | ❌ **REJECT** | `is_honeypot: true` flag detected from GoPlus. |
 | **Manipulation** | Economy | ❌ **REJECT** | Asking Price > 50% above Market Price. |
 | **Combo Fail** | Multi-Factor | ❌ **REJECT** | Unknown Token + Moderate Price Deviation (Risk Stacking). |
