@@ -21,6 +21,7 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
     $cmd = "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload $PayloadFile"
     
     $inAuditBody = $false
+
         docker exec aegis_dev sh -c "$cmd" 2>&1 | ForEach-Object {
             $rawLine = $_.ToString()
             # 0. Strip ANSI escape sequences for processing
@@ -47,58 +48,85 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
             }
 
             # 3. State Machine for AI Audit (The "Big Story")
-            if ($message -match "--- BEGIN AI RISK AUDIT ---") {
+            if ($message -match "AI RISK ANALYSIS \(Logic & Reasoning\)") {
                 $inAuditBody = $true
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
-                Write-Host "$message" -ForegroundColor White
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
+                Write-Host "$message" -ForegroundColor Cyan
                 return
             }
             
-            if ($message -match "--- END AI RISK AUDIT ---") {
+            # End audit when next section starts
+            if ($inAuditBody -and ($message -match "COMPLIANCE ARCHIVE" -or $message -match "Verdict:")) {
                 $inAuditBody = $false
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
-                Write-Host "$message" -ForegroundColor White
-                return
+                # Fall through to standard handling for this line
             }
 
             if ($inAuditBody) {
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
-                Write-Host "$message" -ForegroundColor Yellow # AI Story in Yellow/Body
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
+                
+                if ($message -match "\[ANALYSIS\]:") {
+                     # Just print it yellow, let terminal handle wrapping naturally
+                     Write-Host "$message" -ForegroundColor Yellow
+                } elseif ($message -match "\[ENTITY\]:|\[SECURITY\]:") {
+                     $parts = $message -split ":", 2
+                     Write-Host $parts[0] -NoNewline -ForegroundColor Yellow
+                     if ($parts.Length -gt 1) {
+                        Write-Host ":$($parts[1])" -ForegroundColor White
+                     } else {
+                        Write-Host ""
+                     }
+                } else {
+                    Write-Host "$message" -ForegroundColor White
+                }
                 return
             }
 
             # 4. Mission Control Highlighting
-            if ($message -match "VERDICT:") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
-                if ($message -match "EXECUTE") { Write-Host "$message" -ForegroundColor Green }
-                else { Write-Host "$message" -ForegroundColor Red }
+            if ($message -match "Verdict:") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
+                
+                # Highlight keyword segments - Simulating inline bolding by splitting string is hard in PS without strict control
+                # We will color the whole line if it contains the verdict, but maybe try to color just the keyword?
+                # Powershell Write-Host adds newline by default.
+                
+                if ($message -match "EXECUTE") {
+                     Write-Host "$message" -ForegroundColor Green
+                } elseif ($message -match "REJECT") {
+                     Write-Host "$message" -ForegroundColor Red
+                } else {
+                     Write-Host "$message" -ForegroundColor Cyan
+                }
             }
-            elseif ($message -match "INPUT RECEIVED|PROTECTION ACTIVE") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+            elseif ($message -match "INPUT RECEIVED|PROTECTION ACTIVE|Chainlink Runtime Environment") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Cyan
             }
-            elseif ($message -match "DATA ACQUISITION|AI SYNTHESIS|COMPLIANCE ARCHIVE|CRYPTOGRAPHIC TRIPLE-LOCK") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+            elseif ($message -match "DATA ACQUISITION|AI SYNTHESIS|COMPLIANCE ARCHIVE|Pinned|CRYPTOGRAPHIC QUAD-LOCK") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Cyan
             }
             elseif ($message -match "Fetch|Send|Ping") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Gray
             }
-            elseif ($message -match "Resolved|Scan|Audit Pinned|Success") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+            elseif ($message -match "Resolved|Scan|Audit Pinned|Success|Clean Token") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Green
             }
-            elseif ($message -match "Fallback|Warning|Error") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+            elseif ($message -match "Fallback|Warning|Error|ALERT|HONEYPOT") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Red
             }
-            elseif ($message -match "Signing Payload|DON SIGNATURE|Hash|Salt|Price|User") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+            elseif ($message -match "Signing Payload|DON SIGNATURE|Hash|Salt|Price|User|Tax:|Status:|Analysis Context") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor White
             }
+            elseif ($message -match "Workflow Simulation Result:") {
+                 # Swallow
+                 return
+            }
             else {
-                if ($metadata) { Write-Host "$metadata " -NoNewline -ForegroundColor Gray }
+                if ($metadata) { Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray }
                 Write-Host "$message"
             }
         }

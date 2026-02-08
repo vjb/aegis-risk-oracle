@@ -28,6 +28,15 @@ The signature binds:
 - **Value** - Asset price (ensures immutability)
 - **Time** - 5-minute expiry (prevents replay)
 
+## 🏆 Hackathon Qualification: Protocol Safeguard Triggers
+
+`AegisVault.sol` implements the mandatory **Protocol Safeguard Triggers**.
+
+**Key Features for Judges:**
+1.  **Transaction Revert:** The contract *reverts* (does not execute) if the signature is invalid or the risk score is too high.
+2.  **Non-Interactive Enforcement:** The agent cannot bypass the check; the `swapWithOracle` modifier is enforced at the EVM level.
+3.  **Cryptographic Binding:** The signature binds the specific `token`, `amount`, and `user` to the `verdict`, preventing front-running or parameter swapping.
+
 ## Deployment
 ```bash
 # Deploy to Base Sepolia (example)

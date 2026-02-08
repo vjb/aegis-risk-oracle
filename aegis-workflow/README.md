@@ -42,6 +42,16 @@ We have implemented a comprehensive test suite to demonstrate the synthesis of m
 - **Robust API Fallbacks**: Detects CoinGecko 429 rate limits and uses demo fallbacks for stable simulations.
 - **Verifiable Output**: Generates a cryptographically signed JSON result for on-chain verification in `AegisVault.sol`.
 
+## 🏆 Hackathon Qualification: CRE Best Practices
+
+This workflow implements the **Chainlink CRE Best Practices** for production-grade oracles.
+
+**Key Features for Judges:**
+1.  **Parallel Execution:** Uses `Promise.all()` for CoinGecko + GoPlus + QRNG (L70-L85).
+2.  **Input Sanitization:** Uses `zod` schemas to validate all incoming HTTP payloads (L40).
+3.  **Secret Management:** Uses `runtime.getSecret()` for API keys (L20).
+4.  **Hardware-Based Randomness:** Uses ANU QRNG for the signature salt (L81).
+
 ## 🛠 Running Simulations
 
 From the project root:

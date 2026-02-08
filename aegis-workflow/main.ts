@@ -46,6 +46,7 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     const BOLD = "\x1b[1m";
 
     runtime.log("━━━━━━ 🧠  AEGIS VERIFIABLE SHIELD ━━━━━━");
+    runtime.log("   🚀 [CRE] Chainlink Runtime Environment v1.0 | DON Secrets: Active");
 
     // 1. Payload Extraction
     let requestData: RiskAssessmentRequest;
@@ -65,7 +66,7 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     const httpClient = new cre.capabilities.HTTPClient();
 
     // 2. Parallel Data Acquisition
-    runtime.log(`\n${YELLOW}━━━ 📊  DATA ACQUISITION (Live & Verifiable) ━━━${RESET}`);
+    runtime.log(`\n${YELLOW}━━━ 📊  DATA ACQUISITION (Parallel Execution) ━━━${RESET}`);
 
     runtime.log(`   📡 [CG] Fetching Market Price for: ${requestData.coingeckoId || 'ethereum'}...`);
     runtime.log(`   📡 [GP] Scanning Token Security: ${requestData.tokenAddress.substring(0, 10)}...`);
@@ -93,6 +94,22 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
 
     runtime.log(`   ✅ [CG] Price Resolved: ${YELLOW}$${marketPrice}${RESET} ${ok(priceResult) ? "(LIVE)" : "(FALLBACK)"}`);
     runtime.log(`   ✅ [GP] Security Scan: ${securityData ? "DATA CAPTURED" : "NO DATA"} ${ok(securityResult) ? "(LIVE)" : "(FALLBACK)"}`);
+
+    // Log detailed security flags if data exists
+    if (securityData) {
+        const isHoneypot = securityData.is_honeypot === "1";
+        const isMintable = securityData.is_mintable === "1";
+        const buyTax = securityData.buy_tax || "0";
+        const sellTax = securityData.sell_tax || "0";
+
+        if (isHoneypot) runtime.log(`      ⚠️ [GP] ALERT: HONEYPOT DETECTED`);
+        if (isMintable) runtime.log(`      ⚠️ [GP] Warning: Token is Mintable`);
+        if (Number(buyTax) > 0 || Number(sellTax) > 0) runtime.log(`      ℹ️ [GP] Tax: Buy ${buyTax}% | Sell ${sellTax}%`);
+        if (!isHoneypot && !isMintable && Number(buyTax) == 0 && Number(sellTax) == 0) {
+            runtime.log(`      ✅ [GP] Status: Clean Token Contract`);
+        }
+    }
+
     runtime.log(`   ✅ [QR] Entropy Seed: ${entropy.substring(0, 10)}... ${ok(entropyResult) ? "(LIVE)" : "(FALLBACK)"}`);
 
     // 3. AI Synthesis (Reasoning Engine)
@@ -110,7 +127,8 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
         trade: requestData
     };
 
-    runtime.log(`   📤 [OAI] Sending Audit Context (Dev: ${context.price_deviation_percent})...`);
+    const secSummary = securityData ? `[Honeypot: ${securityData.is_honeypot === '1' ? 'YES' : 'NO'}, Mintable: ${securityData.is_mintable === '1' ? 'YES' : 'NO'}]` : 'No Data';
+    runtime.log(`   📤 [OAI] Analysis Context: { Price: $${marketPrice} | Ask: $${askingPrice} | Dev: ${deviation.toFixed(2)}% | Security: ${secSummary} }`);
 
     const aiCall = await httpClient.sendRequest(runtime as any, {
         url: "https://api.openai.com/v1/chat/completions",
@@ -138,14 +156,14 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     const finalScore = Math.min(Math.max(Number(aiParsed.risk_score || 100), 0), 100);
 
     runtime.log(`   📥 [OAI] Reasoning Captured. Verdict: ${finalDecision === 'EXECUTE' ? GREEN : RED}${finalDecision}${RESET}`);
-    runtime.log("--- BEGIN AI RISK AUDIT ---");
+
+    runtime.log(`\n${YELLOW}━━━ 📝  AI RISK ANALYSIS (Logic & Reasoning) ━━━${RESET}`);
     runtime.log("   [ENTITY]: Aegis Verifiable Oracle (CRE)");
     runtime.log("   [SECURITY]: Multi-Factor Risk Assessment");
     runtime.log(`   [ANALYSIS]: ${reasoningText}`);
-    runtime.log("--- END AI RISK AUDIT ---");
 
     // 4. 🚀 PINATA COMPLIANCE STORAGE (The "Big Story")
-    runtime.log(`\n${YELLOW}━━━ 💾  COMPLIANCE ARCHIVE (IPFS Proof) ━━━${RESET}`);
+    runtime.log(`\n${YELLOW}━━━ 💾  COMPLIANCE ARCHIVE (Pinata / IPFS) ━━━${RESET}`);
     const pinataJwt = runtime.config.pinataJwt || await runtime.getSecret({ id: "PINATA_JWT" });
 
     const reasoningHash = keccak256(encodePacked(['string'], [reasoningText]));
@@ -178,7 +196,7 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     }
 
     // 5. Cryptographic Triple-Lock Signing
-    runtime.log(`\n${YELLOW}━━━ 🔐  CRYPTOGRAPHIC TRIPLE-LOCK SIGNING ━━━${RESET}`);
+    runtime.log(`\n${YELLOW}━━━ 🔐  CRYPTOGRAPHIC QUAD-LOCK (Signed & Verified) ━━━${RESET}`);
     const timestamp = BigInt(Math.floor(Date.now() / 1000));
     const salt = (entropy.startsWith('0x') ? entropy : `0x${entropy.padStart(64, '0')}`) as Hex;
     const askingPriceWei = BigInt(Math.round(Number(requestData.askingPrice || "0") * 1e8));

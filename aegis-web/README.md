@@ -15,6 +15,15 @@
 | Styling | Tailwind CSS + Shadcn UI + Aceternity UI |
 | Animation | Framer Motion |
 
+## 🏆 Hackathon Qualification: Visualization
+
+Aegis Web provides the **Real-Time Reserve Health Checks** and **Automated Risk Monitoring** visualization required by the track.
+
+**Key Features for Judges:**
+1.  **Parallel scanning UI:** Shows CoinGecko, GoPlus, and QRNG scanning in real-time.
+2.  **Verdict Visualization:** Clear GREEN/RED indicators based on the cryptographically signed result.
+3.  **Audit Trail Link:** Direct links to the IPFS audit logs for every transaction.
+
 ## Quick Start
 ```bash
 npm install

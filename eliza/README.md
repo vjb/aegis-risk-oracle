@@ -17,6 +17,15 @@ User: "Swap 1 ETH for PEPE"
 Aegis: "REQUEST RECEIVED. INITIATING SWAP PARAMETER VALIDATION via Chainlink CRE. STANDBY FOR COMPLIANCE CHECK."
 ```
 
+## 🏆 Hackathon Qualification: ElizaOS Integration
+
+This project implements the **ElizaOS** multi-agent framework to power the "Aegis" character.
+
+**Key Features for Judges:**
+1.  **Custom Character:** The `characters/aegis.json` defines a strict, security-focused personality that refuses to hallucinate safety.
+2.  **Plugin Architecture:** Uses the standard ElizaOS plugin system to connect to the Chainlink CRE. (See `integrations/elizaos/`).
+3.  **Conversational Risk:** Bridges the gap between raw data (JSON) and human understanding by explaining *why* a token is unsafe in plain English.
+
 ## Quick Start
 ```bash
 npm install
