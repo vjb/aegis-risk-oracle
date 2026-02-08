@@ -16,7 +16,8 @@ AI-Powered Risk Assessment Oracle for DeFi Agents using Chainlink CRE. Aegis pre
 | **CRE Workflow** | ✅ | [`aegis-workflow/main.ts`](aegis-workflow/main.ts) - Simulated via CRE CLI |
 | **External APIs** | ✅ | CoinGecko, GoPlus, QRNG (parallel fetching) |
 | **LLM Integration** | ✅ | GPT-4o-mini for multi-factor risk synthesis |
-| **On-Chain Verification** | ✅ | [`contracts/AegisVault.sol`](contracts/AegisVault.sol) |
+| **On-Chain Verification** | ✅ | [`contracts/AegisVault.sol`](contracts/AegisVault.sol) (Local Anvil & Base Sepolia ready) |
+| **Local Chain Demo** | ✅ | `deploy-local.ps1` + `test-contract.ps1` (Foundry Integration) |
 
 ---
 
@@ -90,17 +91,16 @@ const [priceResult, entropyResult, securityResult] = await Promise.all([
 ## 🚀 Quick Start
 
 ```powershell
-```powershell
 # 1. Start Anvil & Deploy Contract (Local Chain)
-.\deploy-local.ps1    # Starts Anvil on port 8545 & deploys AegisVault
+.\deploy-local.ps1    # Starts Anvil on port 8545 & deploys AegisVault.sol
 
 # 2. Run Integration Tests
 .\test-contract.ps1   # 🧪 E2E: CRE Verdict → Contract Execution
 .\test-signature.ps1  # 🔐 Off-chain Crypto Verification Demo
 
 # 3. Start Full Demo Stack (Frontend + Backend)
-.\start-aegis.ps1     # Frontend: localhost:3005
-```
+.\start-aegis.ps1     # Frontend: localhost:3005, Backend: localhost:3011
+.\stop-aegis.ps1      # Stop all services
 ```
 
 ---
@@ -117,6 +117,7 @@ aegis-risk-oracle/
 ├── test-aegis.ps1        # 🧪 AI risk analysis test suite
 ├── test-crypto.ps1       # 🔐 Cryptographic proof tests
 ├── test-all-apis.ts      # 📡 API connectivity tests
+├── deploy-local.ps1      # 🔗 Deploy AegisVault to local Anvil chain
 ├── start-aegis.ps1       # 🚀 Start demo stack
 └── stop-aegis.ps1        # 🛑 Stop demo stack
 ```
