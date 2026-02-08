@@ -67,7 +67,7 @@ Before running the Quick Start, ensure your environment is ready.
 3.  **Secrets Configuration (CRITICAL):**
     ```bash
     cp .env.example .env
-    # ⚠️ Open .env and add your OPENAI_API_KEY and COINGECKO_API_KEY
+    # ⚠️ Open .env and add your OPENAI_API_KEY
     ```
 
 ---
