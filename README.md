@@ -25,7 +25,7 @@ Aegis is built specifically for the **Risk & Compliance** track, delivering an a
 
 | Track Requirement | Aegis Implementation |
 | :--- | :--- |
-| **"Automated risk monitoring"** | 24/7 autonomous scanning using [Chainlink CRE](./aegis-workflow/main.ts) triggers, with **GPT-4o AI analysis** of contract logic. |
+| **"Automated risk monitoring"** | 24/7 autonomous scanning using [Chainlink CRE](./aegis-workflow/main.ts) triggers, with **GPT-4o synthesis of risk signals**. |
 | **"Real-time reserve health checks"** | Live query of liquidity & market cap via [CoinGecko API](./aegis-workflow/main.ts#L71), **synthesized by AI** to detect manipulation. |
 | **"Protocol safeguard triggers"** | [AegisVault.sol](./contracts/AegisVault.sol) *reverts* transactions if the **AI-verified** risk signature is invalid or high-risk. |
 | **"Chainlink Usage"** | Uses [Chainlink Functions / CRE](./aegis-workflow/main.ts) as the decentralized orchestration layer combining **Blockchain, Data, and AI**. |
