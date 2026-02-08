@@ -183,7 +183,7 @@ docker exec aegis_dev bun run aegis-workflow/verify-signature.ts
 ```
 
 **Option 3: Run Full Stack Locally (Web UI + Eliza)**
-If you want to run the full React frontend and Eliza agent locally (instead of the Vercel deployment):
+If you want to run the full React frontend (Next.js 16 + Tailwind) and Eliza agent locally:
 ```powershell
 .\start-aegis.ps1
 ```
