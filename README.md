@@ -16,7 +16,8 @@ AI-Powered Risk Assessment Oracle for DeFi Agents using Chainlink CRE. Aegis pre
 | **CRE Workflow** | ✅ | [`aegis-workflow/main.ts`](aegis-workflow/main.ts) - Simulated via CRE CLI |
 | **External APIs** | ✅ | CoinGecko, GoPlus, QRNG (parallel fetching) |
 | **LLM Integration** | ✅ | GPT-4o-mini for multi-factor risk synthesis |
-| **On-Chain Verification** | ✅ | [`contracts/AegisVault.sol`](contracts/AegisVault.sol) |
+| **On-Chain Verification** | ✅ | [`contracts/AegisVault.sol`](contracts/AegisVault.sol) (Local Anvil & Base Sepolia ready) |
+| **Local Chain Demo** | ✅ | `deploy-local.ps1` + `test-contract.ps1` (Foundry Integration) |
 
 ---
 
@@ -90,16 +91,44 @@ const [priceResult, entropyResult, securityResult] = await Promise.all([
 ## 🚀 Quick Start
 
 ```powershell
-# Windows: Start full demo stack
+# Full E2E Demo (AI → Signature → Blockchain)
+.\run-full-flow.ps1   # 🚀 Complete integration: CRE analysis -> Anvil execution
+
+# OR run individual components:
+
+# 1. Start Anvil & Deploy Contract (Local Chain)
+.\deploy-local.ps1    # Starts Anvil on port 8545 & deploys AegisVault.sol
+
+# 2. Run Integration Tests
+.\test-contract.ps1   # 🧪 E2E: CRE Verdict → Contract Execution
+.\test-signature.ps1  # 🔐 Off-chain Crypto Verification Demo
+
+# 3. Start Full Demo Stack (Frontend + Backend)
 .\start-aegis.ps1     # Frontend: localhost:3005, Backend: localhost:3011
 .\stop-aegis.ps1      # Stop all services
-
-# Docker: Run CRE workflow tests
-docker-compose up -d  # Or: docker build -t aegis-dev . && docker run -it aegis-dev bash
-docker exec -it aegis_dev bash
-./test-aegis.ps1      # AI risk analysis
-./test-crypto.ps1     # Cryptographic proofs
 ```
+
+### 🎬 E2E Demo Showcase
+
+**`run-full-flow.ps1`** demonstrates the complete integration:
+
+```
+🚀 AEGIS FULL E2E DEMO: AI → SIGNATURE → BLOCKCHAIN
+
+Step 1: ✅ Prerequisites (Anvil, Docker, Contract)
+Step 2: 🧠 AI Risk Analysis (Chainlink CRE)
+Step 3: 🔐 Signed Transaction Prep
+Step 4: ⛓️  On-Chain Execution (Anvil)
+Step 5: 🛡️  Replay Attack Prevention
+
+Result: Proves full stack integration with live demo
+```
+
+**What It Proves:**
+- AI analysis flows directly to blockchain execution
+- Cryptographic signatures prevent tampering
+- Replay attacks are blocked by the contract
+- No manual copy-paste needed — fully automated
 
 ---
 
@@ -112,6 +141,10 @@ aegis-risk-oracle/
 ├── contracts/            # 🔐 Solidity (AegisVault.sol)
 ├── eliza/                # 🤖 ElizaOS Agent (character.json)
 ├── integrations/         # 🔌 Agent plugins (ElizaOS, LangChain)
+├── run-full-flow.ps1     # 🎬 E2E DEMO: AI → Signature → Blockchain → Replay
+├── deploy-local.ps1      # 🔗 Deploy AegisVault to local Anvil chain
+├── test-contract.ps1     # 🧪 Contract integration tests (Approve/Reject/Replay)
+├── test-signature.ps1    # 🔐 Off-chain signature verification demo
 ├── test-aegis.ps1        # 🧪 AI risk analysis test suite
 ├── test-crypto.ps1       # 🔐 Cryptographic proof tests
 ├── test-all-apis.ts      # 📡 API connectivity tests
