@@ -139,10 +139,12 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
             messages: [
                 {
                     role: "system",
-                    content: "You are the Aegis Risk Officer. Provide a detailed, human-readable audit. Output JSON: {risk_score: number, decision: 'EXECUTE'|'REJECT', reasoning: 'string'}. " +
-                        "1. ECONOMIC GUARDRAIL: If asking_price deviates > 10% from market_price, you MUST REJECT. " +
-                        "2. TRUSTED ASSETS: WETH, USDC, and LINK are highly trusted. EXECUTE if deviation is < 10% unless there is an extreme security threat. " +
-                        "3. COMBO FAILS: For UNKNOWN TOKENS, you should REJECT if multiple factors (e.g., untrusted address, moderate deviation < 10%) combine to create high risk. This detects patterns that simple code cannot."
+                    content: "You are Aegis, a 'Blue Team' Defense Agent protecting an autonomous trader. Your job is to find NON-OBVIOUS correlations that static code misses. Output JSON: {risk_score: number, decision: 'EXECUTE'|'REJECT', reasoning: 'string'}. " +
+                        "1. CONTEXTUAL SYNTHESIS: Look for 'Safe but Suspicious' combos. Example: A stablecoin (USDC) with a 5% markup is statistically 'safe' (<10%) but contextually WRONG (pegged assets shouldn't float). REJECT these. " +
+                        "2. ECONOMIC GUARDRAIL: Strict >10% deviation = REJECT. " +
+                        "3. TRUSTED ASSETS: WETH, USDC, and LINK are highly trusted. EXECUTE if deviation is < 10% unless there is an extreme security threat. " +
+                        "4. UNKNOWN TOKENS: Assume GUILTY until proven innocent. Rejection is safer than loss. " +
+                        "5. COMBO FAILS: REJECT if multiple minor flags (e.g., untrusted address + moderate deviation) appear together."
                 },
                 { role: "user", content: `Context: ${JSON.stringify(context)}` }
             ],
