@@ -73,27 +73,36 @@ Before running the Quick Start, ensure your environment is ready.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Judge's Guide)
 
-> *⚠️ **Note for Mac/Linux Users:** This project uses PowerShell for automation. However, you can run the core verification logic directly via Docker using these commands:*
->
-> **1. Run CRE Simulation (AI Risk Logic):**
-> `docker exec aegis_dev sh -c "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload /app/tests/payloads/test-payload-pass.json"`
->
-> **2. Verify Cryptography (Triple Lock):**
-> `docker exec aegis_dev sh -c "cd /app/aegis-workflow && bun run verify-signature.ts"`
+We provide two ways to run Aegis: the **Universal Verification** (for checking logic) and the **Full Demo Suite** (used for the video).
 
-**1. THE UBER TESTER (Verify ALL systems in one command)**
+### 1. 🌍 Universal Verification (Docker)
+*> **Recommended for Judges.** Runs on Mac, Linux, and Windows.*  
+*This verifies the core innovation: The CRE Workflow, AI Logic, and Triple-Lock Cryptography.*
+
+**A. Run CRE Simulation (AI Risk Assessment):**
+```bash
+docker exec aegis_dev sh -c "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload /app/tests/payloads/test-payload-pass.json"
+```
+
+**B. Verify Cryptography (Triple Lock Signatures):**
+```bash
+docker exec aegis_dev sh -c "cd /app/aegis-workflow && bun run verify-signature.ts"
+```
+
+---
+
+### 2. 🎬 Full Stack Demo Suite (Windows/PowerShell)
+*> **Used for filming.** Requires Windows + PowerShell.*  
+*Orchestrates the entire 5-container stack (Frontend, ElizaOS, Anvil, Docker, Contract).*
+
+**Option A: The Uber Tester (E2E Verification)**
 ```powershell
 .\test-everything.ps1 # 🛡️ Environment → APIs → Crypto → Contract → E2E
 ```
 
-**2. Full E2E Demo (AI → Signature → Blockchain)**
-```powershell
-.\run-full-flow.ps1   # 🚀 Complete integration: CRE analysis -> Anvil execution
-```
-
-**3. Visual Demo Suite (Frontend + ElizaOS)**
+**Option B: The Visual Dashboard (Frontend + ElizaOS)**
 ```powershell
 .\start-aegis.ps1     # Frontend: localhost:3005, Backend: localhost:3011
 .\stop-aegis.ps1      # Stop all services
