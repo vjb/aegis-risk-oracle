@@ -101,7 +101,9 @@ const [priceResult, entropyResult, securityResult] = await Promise.all([
 
 # 2. Run Integration Tests
 .\test-contract.ps1   # 🧪 E2E: CRE Verdict → Contract Execution
-.\test-signature.ps1  # 🔐 Off-chain Crypto Verification Demo
+# 2. Run Integration Tests
+.\test-contract.ps1   # 🧪 E2E: CRE Verdict → Contract Execution
+.\test-signature.ps1  # 🔐 Off-chain Crypto Verification Demo (NO ANVIL REQUIRED)
 
 # 3. Start Full Demo Stack (Frontend + Backend)
 .\start-aegis.ps1     # Frontend: localhost:3005, Backend: localhost:3011
@@ -138,18 +140,23 @@ Result: Proves full stack integration with live demo
 .\start-aegis.ps1   # Starts both services in separate windows
 ```
 
-**What You Get:**
-- **Frontend (`localhost:3005`)**: Mission Control UI with real-time risk feed
-  - Live token scanning interface
-  - Multi-agent workflow visualization
-  - Security alerts and verdict display
-  - Built with Next.js 14 + Tailwind CSS
+### 🌐 Frontend UI + ElizaOS Agent
 
-- **ElizaOS Backend (`localhost:3011`)**: AI agent server
-  - Chat-based risk analysis interface
-  - Intent parsing for DeFi commands
-  - Integration point for agent orchestration
-  - Character: Aegis (compliance-focused agent)
+**`start-aegis.ps1`** launches the visual demo stack (No blockchain required):
+
+```powershell
+.\start-aegis.ps1   # Starts both services in separate windows
+```
+
+**1. Frontend (`localhost:3005`) - The "Movie Set"**
+- **What it is:** A React/Next.js "Mission Control" dashboard.
+- **What it does:** Visualizes the risk scanning process.
+- **Note:** This is a *simulation* UI. It doesn't connect to the local Anvil chain yet. It's designed to show *intent* and *user experience*.
+
+**2. Backend (`localhost:3011`) - The Brain (ElizaOS)**
+- **What it is:** An ElizaOS agent server running the "Aegis" character.
+- **What it does:** Processes natural language chat, triggers the CRE risk analysis workflow, and returns the verdict.
+- **Integration:** The frontend talks to this backend to get real analysis data.
 
 **Demo Flow:**
 1. User inputs token address in frontend
@@ -161,6 +168,19 @@ Result: Proves full stack integration with live demo
 ```powershell
 .\stop-aegis.ps1   # Gracefully stops both services
 ```
+
+---
+
+### ⚠️ Prerequisite Note
+
+**You do NOT need Anvil for:**
+- `test-signature.ps1` (Pure crypto verification)
+- `start-aegis.ps1` (Frontend/Backend visual demo)
+
+**You DO need Anvil for:**
+- `run-full-flow.ps1` (The full E2E on-chain demo)
+- `deploy-local.ps1`
+- `test-contract.ps1`
 
 ---
 
