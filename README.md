@@ -171,23 +171,204 @@ const [price, entropy, security] = await Promise.all([ ... ]);
 
 ---
 
-## 🚀 Quick Start (Simulation)
+## 🏛️ Full Stack Architecture
+
+Aegis is a complete, hackathon-ready stack demonstrating end-to-end AI agent security.
+
+```mermaid
+flowchart TB
+    subgraph Frontend ["🌐 Aegis Web (Next.js)"]
+        UI[Mission Control UI]
+        Chat[Chat Interface]
+        Indicators[Parallel Scanning Indicators]
+    end
+
+    subgraph Agent ["🤖 ElizaOS Agent"]
+        Eliza[Aegis Character]
+        Intent[Intent Detection]
+    end
+
+    subgraph Oracle ["⛓️ Chainlink CRE"]
+        Workflow[Aegis Workflow]
+        subgraph Parallel ["Parallel Data Fetching"]
+            CG[CoinGecko API]
+            GP[GoPlus Security]
+            QRNG[Quantum Entropy]
+        end
+        AI[GPT-4o-mini Synthesis]
+        Sign[Triple Lock Signing]
+    end
+
+    subgraph OnChain ["🔐 On-Chain"]
+        Vault[AegisVault.sol]
+        Verify[Signature Verification]
+    end
+
+    UI --> Chat --> Eliza
+    Eliza --> Intent --> Workflow
+    Workflow --> Parallel
+    Parallel --> AI --> Sign
+    Sign --> Vault --> Verify
+```
+
+---
+
+## 🌐 Aegis Web Frontend
+
+The **Aegis Mission Control** is a Next.js 14 web application that provides a stunning visual interface for interacting with the Aegis Risk Oracle.
+
+### Key Features
+- **Glassmorphic UI**: Modern dark theme with animated backgrounds
+- **Parallel Scanning Visualization**: Real-time indicators showing Market, Entropy, and Security checks completing at different times
+- **Signed Verdicts**: DON-signed risk assessments with cryptographic verification badges
+- **Conversational AI**: Chat interface powered by ElizaOS
+
+### Tech Stack
+| Component | Technology |
+| :--- | :--- |
+| Framework | Next.js 14 (App Router) |
+| Styling | Tailwind CSS + Shadcn UI + Aceternity UI |
+| Animation | Framer Motion |
+| State | React Hooks |
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI as Aegis Web
+    participant Agent as ElizaOS
+    participant CRE as Chainlink CRE
+
+    User->>UI: "swap 100 AVAX"
+    UI->>UI: Detect Risk Intent
+    
+    rect rgb(30, 41, 59)
+    note right of UI: Parallel Scanning Animation
+    UI->>UI: 🔵 Market (start)
+    UI->>UI: 🔵 Entropy (start)
+    UI->>UI: 🔵 Security (start)
+    UI->>UI: ✅ Market (1.2s)
+    UI->>UI: ✅ Security (2.2s)
+    UI->>UI: ✅ Entropy (3.5s)
+    end
+    
+    UI->>Agent: Forward to Agent
+    Agent->>CRE: Risk Assessment
+    CRE-->>Agent: Signed Verdict
+    Agent-->>UI: Display Result
+    UI-->>User: ✅ AEGIS_APPROVE
+```
+
+---
+
+## 🤖 ElizaOS Agent Integration
+
+Aegis includes a fully-configured **ElizaOS agent** that acts as the AI Risk Officer.
+
+### Character Definition
+The agent is defined in `eliza/character.json`:
+- **Persona**: Robotic, authoritative compliance architect
+- **Style**: Technical, direct, no emojis
+- **Knowledge**: Chainlink CRE, Triple Lock Security, GoPlus signals
+
+### Agent Communication Flow
+```typescript
+// eliza/character.json defines the Aegis persona
+{
+    "name": "Aegis",
+    "system": "You are Aegis, the Lead Compliance Architect...",
+    "bio": ["Guardian of the AegisVault..."],
+    "style": { "all": ["Robotic and authoritative tone..."] }
+}
+```
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Docker (recommended) OR Node.js 18+
-- [Chainlink CRE CLI](https://docs.chain.link/chainlink-local/build/cre/installation)
+- **Node.js 18+** and **npm**
+- **Bun** (for ElizaOS backend)
+- API keys in `.env` files (OpenAI, CoinGecko, GoPlus)
 
-### Run the Demo Suite (via Docker)
+### Option 1: PowerShell Scripts (Windows)
+```powershell
+# Start both frontend and backend
+.\start-aegis.ps1
+
+# Stop all services
+.\stop-aegis.ps1
+```
+
+### Option 2: Manual Start
+```bash
+# Terminal 1: Start ElizaOS Backend (Port 3011)
+cd eliza
+npm run dev:server
+
+# Terminal 2: Start Aegis Web Frontend (Port 3005)
+cd aegis-web
+npm run dev -- -p 3005
+```
+
+### Option 3: Docker (CRE Workflow)
 ```bash
 # Build & Run Development Container
 docker build -t aegis-dev .
 docker run -it --name aegis_dev aegis-dev bash
 
-# Execute Phase 1: AI Risk Analysis
+# Execute AI Risk Analysis
 ./test-aegis.ps1
 
-# Execute Phase 2: Cryptographic Security Proofs
+# Execute Cryptographic Security Proofs
 ./test-crypto.ps1
+```
+
+---
+
+## 📁 Project Structure
+
+```
+aegis-risk-oracle/
+├── aegis-web/              # Next.js 14 Frontend
+│   └── src/components/     # UI Components (Chat.tsx, etc.)
+├── aegis-workflow/         # Chainlink CRE Workflow
+│   ├── main.ts             # Core workflow with CRE best practices
+│   └── verify-signature.ts # Signature verification utilities
+├── contracts/              # Solidity Smart Contracts
+│   └── AegisVault.sol      # On-chain signature verification
+├── eliza/                  # ElizaOS Agent
+│   └── character.json      # Aegis persona definition
+├── integrations/           # Agent integration examples
+│   └── elizaos/            # ElizaOS plugin drafts
+├── start-aegis.ps1         # Start both services
+├── stop-aegis.ps1          # Stop all services
+├── test-aegis.ps1          # AI risk analysis tests
+└── test-crypto.ps1         # Cryptographic proof tests
+```
+
+---
+
+## ⛓️ CRE Best Practices Implemented
+
+The `aegis-workflow/main.ts` file documents **7 Chainlink CRE best practices**:
+
+| # | Best Practice | Implementation |
+| :---: | :--- | :--- |
+| 1 | **SDK Structure** | Uses `handler(trigger, callback)` with `Runner` |
+| 2 | **HTTP Capability** | Uses `HTTPCapability` for trigger and `HTTPClient` for requests |
+| 3 | **Parallel Fetching** | `Promise.all([...])` for concurrent API calls |
+| 4 | **Zod Validation** | Strict runtime schema validation |
+| 5 | **Secure Secrets** | `runtime.getSecret()` for production keys |
+| 6 | **Structured Logging** | `runtime.log()` for CRE UI visibility |
+| 7 | **Response Helpers** | `ok()`, `json()`, `text()` for safe parsing |
+
+```typescript
+// Example: Parallel fetching (CRE Best Practice #3)
+const [priceResult, entropyResult, securityResult] = await Promise.all([
+    httpClient.sendRequest(runtime, { url: "https://api.coingecko.com/...", method: "GET" }).result(),
+    httpClient.sendRequest(runtime, { url: "https://qrng.anu.edu.au/...", method: "GET" }).result(),
+    httpClient.sendRequest(runtime, { url: "https://api.gopluslabs.io/...", method: "GET" }).result(),
+]);
 ```
 
 ---
@@ -217,4 +398,18 @@ executeTransaction(intent, oracleResponse.signature);
 
 ---
 
+## 🏆 Hackathon Submission Checklist
+
+- [x] **CRE Workflow**: Fully validated & simulated
+- [x] **Chainlink APIs**: Parallel fetching (Market + Security + Entropy)
+- [x] **LLM Integration**: GPT-4o-mini synthesized risk analysis
+- [x] **Triple Lock**: ECDSA signatures with Identity/Value/Time locks
+- [x] **Web Frontend**: Next.js Mission Control with parallel scanning UI
+- [x] **ElizaOS Agent**: Configured character with CRE knowledge
+- [x] **Smart Contracts**: AegisVault with signature verification
+- [x] **Documentation**: Mermaid diagrams and best practice annotations
+
+---
+
 **⚠️ Disclaimer**: This is a hackathon demo. Not audited for production use.
+

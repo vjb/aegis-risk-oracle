@@ -1,3 +1,22 @@
+/**
+ * ┌──────────────────────────────────────────────────────────────────────────────┐
+ * │                    AEGIS MISSION CONTROL - CHAT COMPONENT                    │
+ * │                                                                              │
+ * │  The primary UI component for the Aegis Risk Oracle demo.                   │
+ * │  This component visualizes the parallel data acquisition process of the      │
+ * │  Chainlink CRE workflow with real-time scanning indicators.                  │
+ * └──────────────────────────────────────────────────────────────────────────────┘
+ *
+ * 🎯 KEY FEATURES:
+ * 1. Parallel Scanning Visualization - All indicators start simultaneously
+ * 2. Staggered Completion - Market → Security → Entropy (different timings)
+ * 3. Signed Verdicts - Visual distinction for DON-signed risk assessments
+ * 4. Scam Protection - Immediate rejection for known malicious patterns
+ *
+ * 📡 BACKEND CONNECTION:
+ * - Connects to ElizaOS agent at http://localhost:3011/message
+ * - Agent uses character.json persona (Aegis: robotic compliance architect)
+ */
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
