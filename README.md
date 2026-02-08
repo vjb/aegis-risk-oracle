@@ -47,7 +47,10 @@ AI agents (like ElizaOS) are entering the DeFi economy, executing autonomous tra
 
 ## 🏗️ Architecture
 
-Aegis uses a **"Verify, then Trust"** architecture. No trade can execute without a valid **Quad-Lock Signature** from the Aegis Oracle. **Crucially, the verdict ("EXECUTE" or "REJECT") is cryptographically bound in the signature hash, so a "REJECT" signature cannot be tampered with to execute a trade.**
+Aegis uses a **"Verify, then Trust"** architecture. No trade can execute without a valid **Quad-Lock Signature** from the Aegis Oracle.
+
+> **Crucially, the verdict ("EXECUTE" or "REJECT") is cryptographically bound in the signature hash.**
+> This means a "REJECT" signature cannot be tampered with to execute a trade—the on-chain vault will mathematically reject it.
 
 ```mermaid
 sequenceDiagram
