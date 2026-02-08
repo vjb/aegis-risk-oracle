@@ -5,7 +5,7 @@
     "_expected": "EXECUTE - Low risk (score: 3-5)",
     "tokenAddress": "0x4200000000000000000000000000000000000006",
     "chainId": "8453",
-    "askingPrice": "2050.00",
+    "askingPrice": "2100.00",
     "amount": "1.5",
     "userAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
 }

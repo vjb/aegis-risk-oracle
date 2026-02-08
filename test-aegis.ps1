@@ -21,67 +21,94 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
     $cmd = "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload $PayloadFile"
     
     $inAuditBody = $false
-    
-    docker exec aegis_dev sh -c "$cmd" 2>&1 | ForEach-Object {
-        $rawLine = $_.ToString()
-        $line = $rawLine.Trim()
-        
-        # Skip SDK noise
-        if ($line -match "Added experimental chain" -or 
-            $line -match "Warning: using default private key" -or
-            $line -match "Workflow compiled" -or
-            $line -match "Created HTTP trigger" -or
-            $line -match 'msg="context canceled"' -or
-            $line -match "Skipping WorkflowEngineV2" -or
-            $line -match "Workflow Simulation Result:" -or
-            $line -match "Analysis Complete:" -or
-            $line -match "Analysis results match" -or
-            [string]::IsNullOrWhiteSpace($line)) {
-            return
-        }
+        docker exec aegis_dev sh -c "$cmd" 2>&1 | ForEach-Object {
+            $rawLine = $_.ToString()
+            # 0. Strip ANSI escape sequences for processing
+            $line = $rawLine -replace "\x1b\[[0-9;]*m", ""
+            
+            # 1. Extract Metadata and Message
+            $metadata = ""
+            $message = $line.Trim()
+            if ($line -match '^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\s+\[(?:USER LOG|SIMULATION)\])\s+(.*)$') {
+                $metadata = $Matches[1]
+                $message = $Matches[2] # Preserve original spaces for indentation
+            }
 
-        # Strip ANSI escape sequences and technical metadata for clean processing
-        $cleanLine = ($rawLine -replace "\x1b\[[0-9;]*m", "").Trim()
-        $cleanLine = $cleanLine -replace '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\s+\[USER LOG\]\s*', ''
+            # 2. Skip SDK Noise and Bulky JSON
+            if ($message -match "Added experimental chain" -or 
+                $message -match "Warning: using default private key" -or
+                $message -match "Workflow compiled" -or
+                $message -match "Created HTTP trigger" -or
+                $message -match "context canceled" -or
+                $message -match "Skipping WorkflowEngineV2" -or
+                $message -match '^".*"$' -or # Hide JSON Result
+                [string]::IsNullOrWhiteSpace($message)) {
+                return
+            }
 
-        # 1. State Machine for Multiline AI Audit Text (The "Big Story")
-        if ($cleanLine -match "BEGIN AI RISK AUDIT") {
-            $inAuditBody = $true
-            Write-Host "   $cleanLine" -ForegroundColor White
-            return
-        }
-        
-        if ($cleanLine -match "END AI RISK AUDIT") {
-            $inAuditBody = $false
-            Write-Host "   $cleanLine" -ForegroundColor White
-            return
-        }
+            # 3. State Machine for AI Audit (The "Big Story")
+            if ($message -match "--- BEGIN AI RISK AUDIT ---") {
+                $inAuditBody = $true
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$message" -ForegroundColor White
+                return
+            }
+            
+            if ($message -match "--- END AI RISK AUDIT ---") {
+                $inAuditBody = $false
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$message" -ForegroundColor White
+                return
+            }
 
-        if ($inAuditBody) {
-            Write-Host "      $cleanLine" -ForegroundColor Yellow
-            return
-        }
+            if ($inAuditBody) {
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$message" -ForegroundColor Yellow # AI Story in Yellow/Body
+                return
+            }
 
-        # 2. General Highlighting
-        if ($cleanLine -match "VERDICT:") {
-            if ($cleanLine -match "EXECUTE") { Write-Host $rawLine -ForegroundColor Green }
-            else { Write-Host $rawLine -ForegroundColor Red }
+            # 4. Mission Control Highlighting
+            if ($message -match "VERDICT:") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                if ($message -match "EXECUTE") { Write-Host "$message" -ForegroundColor Green }
+                else { Write-Host "$message" -ForegroundColor Red }
+            }
+            elseif ($message -match "INPUT RECEIVED|PROTECTION ACTIVE") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$message" -ForegroundColor Cyan
+            }
+            elseif ($message -match "DATA ACQUISITION|AI SYNTHESIS|COMPLIANCE ARCHIVE|CRYPTOGRAPHIC TRIPLE-LOCK") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$message" -ForegroundColor Cyan
+            }
+            elseif ($message -match "Fetch|Send|Ping") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$message" -ForegroundColor Gray
+            }
+            elseif ($message -match "Resolved|Scan|Audit Pinned|Success") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$message" -ForegroundColor Green
+            }
+            elseif ($message -match "Fallback|Warning|Error") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$message" -ForegroundColor Red
+            }
+            elseif ($message -match "Signing Payload|DON SIGNATURE|Hash|Salt|Price|User") {
+                Write-Host "$metadata " -NoNewline -ForegroundColor Gray
+                Write-Host "$message" -ForegroundColor White
+            }
+            else {
+                if ($metadata) { Write-Host "$metadata " -NoNewline -ForegroundColor Gray }
+                Write-Host "$message"
+            }
         }
-        elseif ($line -match "INPUT RECEIVED|PROTECTION ACTIVE") { Write-Host $rawLine -ForegroundColor Cyan }
-        elseif ($line -match "DATA ACQUISITION|AI SYNTHESIS|COMPLIANCE ARCHIVE|CRYPTOGRAPHIC TRIPLE-LOCK") { Write-Host $rawLine -ForegroundColor Cyan }
-        elseif ($line -match "Fetch|Send|Ping") { Write-Host $rawLine -ForegroundColor Gray }
-        elseif ($line -match "Resolved|Scan") { Write-Host $rawLine -ForegroundColor Green }
-        elseif ($line -match "Success|Audit Pinned") { Write-Host $rawLine -ForegroundColor Green }
-        elseif ($line -match "Fallback|Warning|Error") { Write-Host $rawLine -ForegroundColor Red }
-        elseif ($line -match "Signing Payload|DON SIGNATURE|Hash|Salt|Price|User") { Write-Host $rawLine -ForegroundColor White }
-        else { Write-Host $rawLine }
-    }
 }
 
 # --- RUN WORKFLOW SCENARIOS ---
 Run-Test "Pass Scenario (WETH on Base)" "/app/tests/payloads/test-payload-pass.json" "EXECUTE - Trusted Asset" "Green"
 Run-Test "Safety Fail (Honeypot on BSC)" "/app/tests/payloads/test-payload-honeypot.json" "REJECT - Critical Threat" "Red"
 Run-Test "Economic Fail (Price Manipulation)" "/app/tests/payloads/test-payload-manipulation.json" "REJECT - Market Risk" "Magenta"
+Run-Test "Combo Fail (Amber Flags)" "/app/tests/payloads/test-payload-combo.json" "REJECT - Compounding Risks" "Yellow"
 
 Write-Host "`n================================================================" -ForegroundColor Cyan
 Write-Host "   ANALYSIS SUITE COMPLETE" -ForegroundColor Cyan

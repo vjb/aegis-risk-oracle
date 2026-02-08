@@ -122,8 +122,9 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
                 {
                     role: "system",
                     content: "You are the Aegis Risk Officer. Provide a detailed, human-readable audit. Output JSON: {risk_score: number, decision: 'EXECUTE'|'REJECT', reasoning: 'string'}. " +
-                        "ECONOMIC GUARDRAIL: If the asking_price deviates by more than 10% from the market_price, you MUST REJECT the trade due to economic manipulation, even if the asset is WETH, USDC, or LINK. " +
-                        "ASSET TRUST: Standard assets are baseline trusted for security, but never for price manipulation."
+                        "1. ECONOMIC GUARDRAIL: If asking_price deviates > 10% from market_price, you MUST REJECT. " +
+                        "2. TRUSTED ASSETS: WETH, USDC, and LINK are highly trusted. EXECUTE if deviation is < 10% unless there is an extreme security threat. " +
+                        "3. COMBO FAILS: For UNKNOWN TOKENS, you should REJECT if multiple factors (e.g., untrusted address, moderate deviation < 10%) combine to create high risk. This detects patterns that simple code cannot."
                 },
                 { role: "user", content: `Context: ${JSON.stringify(context)}` }
             ],
@@ -134,14 +135,14 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     const aiParsed = JSON.parse((json(aiCall) as any).choices[0].message.content);
     const reasoningText = aiParsed.reasoning || "REASONING_NOT_FOUND";
     const finalDecision = aiParsed.decision || "REJECT";
-    const finalScore = aiParsed.risk_score || 100;
+    const finalScore = Math.min(Math.max(Number(aiParsed.risk_score || 100), 0), 100);
 
     runtime.log(`   📥 [OAI] Reasoning Captured. Verdict: ${finalDecision === 'EXECUTE' ? GREEN : RED}${finalDecision}${RESET}`);
-    runtime.log("   --- BEGIN AI RISK AUDIT ---");
-    runtime.log(`   [ENTITY]: Aegis Verifiable Oracle (CRE)`);
-    runtime.log(`   [SECURITY]: Multi-Factor Risk Assessment`);
+    runtime.log("--- BEGIN AI RISK AUDIT ---");
+    runtime.log("   [ENTITY]: Aegis Verifiable Oracle (CRE)");
+    runtime.log("   [SECURITY]: Multi-Factor Risk Assessment");
     runtime.log(`   [ANALYSIS]: ${reasoningText}`);
-    runtime.log("   --- END AI RISK AUDIT ---");
+    runtime.log("--- END AI RISK AUDIT ---");
 
     // 4. 🚀 PINATA COMPLIANCE STORAGE (The "Big Story")
     runtime.log(`\n${YELLOW}━━━ 💾  COMPLIANCE ARCHIVE (IPFS Proof) ━━━${RESET}`);

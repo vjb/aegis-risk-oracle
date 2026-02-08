@@ -1,0 +1,9 @@
+{
+    "_comment": "Killer Use Case: Combo Fail (Amber Flags)",
+    "_description": "Price deviation (8%) < threshold (10%) BUT Token is untrusted/high-risk.",
+    "tokenAddress": "0x9999999999999999999999999999999999999999",
+    "chainId": "1",
+    "askingPrice": "2300.00",
+    "amount": "10",
+    "userAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+}
