@@ -461,6 +461,21 @@ Do NOT include any other fields. Do NOT override the math based on token reputat
     runtime.log(`✓  VERIFIED: ${isValid ? GREEN + "Signer matches DON" : RED + "SIGNATURE INVALID"} → ${CYAN}${donAccount.address.substring(0, 10)}...${donAccount.address.substring(38)}${RESET}`);
     runtime.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
+    /**
+     * 🚀 FUTURE ROADMAP: CCIP INTEGRATION (Cross-Chain Interoperability Protocol)
+     * In a production V2, the CRE would directly trigger a CCIP message to L2 vaults:
+     * 
+     * await cre.ccip.send({
+     *    destinationChainSelector: "123456789...", // Base Sepolia
+     *    receiver: "0xVaultAddress...",
+     *    data: signedResult,
+     *    tokenUpdates: []
+     * });
+     * 
+     * For this Hackathon V1, we return the signature to the Agent (Off-chain)
+     * which then submits it to the AegisVault.sol (On-chain).
+     */
+
     // Return JSON with full signature for on-chain verification
     return JSON.stringify(signedResult);
 };
