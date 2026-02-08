@@ -139,6 +139,30 @@ We tested Aegis against real-world threats to ensure robustness.
 
 ---
 
+## 🎛️ Mission Control & UI
+
+Aegis isn't just a backend script; it comes with a full **Next.js 16 Mission Control Dashboard** ([`aegis-web/`](./aegis-web/)).
+
+### ✨ Key Features
+*   **Real-Time Visualization:** Watch the "Risk Synthesis" happen live. See CoinGecko price data, GoPlus security flags, and AI reasoning stream in parallel.
+*   **Eliza Chat:** Talk directly to the `Aegis` agent to ask "Is this token safe?" or "Why was my trade rejected?".
+*   **Verdict Indicators:** Clear GREEN/RED status lights that update only when a cryptographically valid signature is received.
+
+### 🚀 One-Click Launch
+We've made it trivial to spin up the full UI + Agent stack:
+
+```powershell
+# 1. Start Everything (UI + API)
+.\start-aegis.ps1
+
+# 2. Stop Everything
+.\stop-aegis.ps1
+```
+
+> **Note:** The UI runs on `http://localhost:3005` and connects to the Eliza agent on port `3011`.
+
+---
+
 ## 🚀 Getting Started
 
 Quickly spin up the entire stack using Docker Compose.
