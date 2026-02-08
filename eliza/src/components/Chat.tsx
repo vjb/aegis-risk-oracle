@@ -51,7 +51,12 @@ export default function Chat({ onIntent, isProcessing }: ChatProps) {
             const response = await fetch('http://localhost:3011/message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: userMsg })
+                body: JSON.stringify({
+                    text: userMsg,
+                    userId: 'user',
+                    roomId: 'default-room-1',
+                    userName: 'User'
+                })
             });
 
             const data = await response.json();

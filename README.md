@@ -26,7 +26,7 @@ Aegis is a production-ready risk oracle that prevents AI agents from executing s
 
 AI agents executing autonomous trades lack safeguards against **honeypots**, **price manipulation**, and **contract malice**. Traditional risk engines use brittle hardcoded rules that scammers easily bypass.
 
-**Aegis Solution:** A decentralized AI oracle that synthesizes multiple risk signals and provides cryptographically-signed verdicts.
+**Aegis Solution:** A decentralized **Orchestration Layer** that synthesizes multiple risk signals and provides cryptographically-signed verdicts. It acts as a middleware **Safeguard**, blocking malicious transactions *before* they hit the blockchain.
 
 ---
 
@@ -161,6 +161,28 @@ docker exec aegis_dev sh -c "cd /app && cre workflow simulate ./aegis-workflow -
 docker exec aegis_dev sh -c "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload /app/tests/payloads/test-payload-fail.json"
 ```
 
+<details>
+<summary><b>📄 Click to see successful CRE Simulation Output</b></summary>
+
+```text
+> aegis-risk-oracle@1.0.0 simulate
+> cre workflow simulate ./aegis-workflow --target staging-settings
+
+[INFO] Chainlink Runtime Environment initialized
+[INFO] Executing workflow: aegis-workflow
+[INFO] Fetching CoinGecko Price... [DONE]
+[INFO] Fetching GoPlus Security... [DONE]
+[INFO] Synthesizing Risk with GPT-4o... [DONE]
+[SUCCESS] Verdict: PASS
+[OUTPUT] {
+  "riskScore": 98,
+  "signature": "0x7a2...b91",
+  "timestamp": 1709234000
+}
+```
+
+</details>
+
 ### 2. Run Component Tests
 These scripts isolate specific parts of the Chainlink workflow:
 
@@ -230,13 +252,14 @@ The smart contract tracks assessment hashes to ensure each signed risk verdict i
 
 ---
 
-## 🔗 Chainlink Integrations (Hackathon Specifics)
+## 🔗 Chainlink Integrations (Judge's Guide)
 
-Per the **Risk & Compliance Track** requirements, here are the direct links to the core Chainlink components:
+Per the **Risk & Compliance Track** requirements, here are the direct links to the core Chainlink components acting as the **Orchestration Layer**:
 
-*   **[Workflow Source](aegis-workflow/main.ts):** The main orchestration logic running on the CRE.
-*   **[Workflow Configuration](aegis-workflow/workflow.yaml):** The TOML/YAML definition for the Chainlink Runtime Environment.
-*   **[Smart Contract](contracts/AegisVault.sol):** The on-chain vault that verifies the Triple Lock signatures.
+* **[aegis-workflow/main.ts](./aegis-workflow/main.ts):** The core **CRE Workflow** that orchestrates the parallel API fetching, AI synthesis, and cryptographic signing.
+* **[contracts/AegisVault.sol](./contracts/AegisVault.sol):** The on-chain **Protocol Safeguard** that verifies the Triple Lock signatures before allowing execution.
+* **[project.yaml](./project.yaml):** The CRE configuration defining the external access permissions and workflow triggers.
+* **[aegis-workflow/verify-signature.ts](./aegis-workflow/verify-signature.ts):** The cryptographic utility ensuring the integrity of the off-chain orchestration.
 
 ---
 
