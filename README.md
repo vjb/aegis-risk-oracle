@@ -229,7 +229,7 @@ The smart contract tracks assessment hashes to ensure each signed risk verdict i
 Per the **Risk & Compliance Track** requirements, here are the direct links to the core Chainlink components:
 
 *   **[Workflow Source](aegis-workflow/main.ts):** The main orchestration logic running on the CRE.
-*   **[Runtime Configuration](aegis-workflow/config.toml):** The TOML configuration for the Chainlink Runtime Environment.
+*   **[Workflow Configuration](aegis-workflow/workflow.yaml):** The TOML/YAML definition for the Chainlink Runtime Environment.
 *   **[Smart Contract](contracts/AegisVault.sol):** The on-chain vault that verifies the Triple Lock signatures.
 
 ---
