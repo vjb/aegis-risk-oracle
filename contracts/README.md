@@ -9,6 +9,18 @@ The `AegisVault` contract demonstrates how AI agents can execute trades **only**
 ### Key Functions
 
 ```solidity
+struct RiskAssessment {
+    address userAddress; // <-- Identity Binding
+    address tokenAddress;
+    uint256 chainId;
+    uint256 askingPrice;
+    uint256 timestamp;
+    string decision;
+    uint8 riskScore;
+    bytes32 salt;
+    bytes32 reasoningHash;
+}
+
 function swapWithOracle(
     address token,
     uint256 amount,

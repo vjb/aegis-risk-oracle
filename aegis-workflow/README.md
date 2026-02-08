@@ -32,7 +32,7 @@ We have implemented a comprehensive test suite to demonstrate the synthesis of m
 | **PASS** | Fair Trade | WETH on Base | Price markup is 0%, token is trusted by GoPlus, no technical flags. | ✅ `EXECUTE` |
 | **Honeypot** | Security | Known Honeypot | `is_honeypot: true` detected. Immediate rejection for absolute safety. | ❌ `REJECT` |
 | **Manipulation** | Economy | WETH (Markup) | Asking price is >50% above market. Detected as direct price manipulation. | ❌ `REJECT` |
-| **Composite** | Multi-Factor | `test-payload-suspicious.json` | **AI Synthesis**: High-Value ($250k) + Proxy/Mintable flags detected on `SUS-TOKEN`. | ❌ `REJECT` |
+| **Composite** | Multi-Factor | `test-payload-suspicious.json` | **AI Synthesis**: Unknown Token + Moderate Price Deviation + Security Flags (Combo Fail). | ❌ `REJECT` |
 | **Invalid** | Integrity | Null/Missing | Schema validation failed at Zod layer. Prevents ingestion of malformed data. | ❌ `REJECT` |
 
 ## 🚀 Technical Features

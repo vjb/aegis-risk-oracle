@@ -23,7 +23,7 @@ This project implements the **ElizaOS** multi-agent framework to power the "Aegi
 
 **Key Features for Judges:**
 1.  **Custom Character:** The `characters/aegis.json` defines a strict, security-focused personality that refuses to hallucinate safety.
-2.  **Plugin Architecture:** Uses the standard ElizaOS plugin system to connect to the Chainlink CRE. (See `integrations/elizaos/`).
+2.  **Plugin Architecture:** Uses the standard ElizaOS plugin structure (see `src/aegisPlugin.ts`), manually invoked by the demo server for deterministic testing.
 3.  **Conversational Risk:** Bridges the gap between raw data (JSON) and human understanding by explaining *why* a token is unsafe in plain English.
 
 ## Quick Start
