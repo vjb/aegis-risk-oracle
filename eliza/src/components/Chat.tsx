@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield } from 'lucide-react';
+import { Shield, Hammer, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/moving-border"; // Using the Moving Border Button wrapper
@@ -18,13 +18,15 @@ interface ChatProps {
     currentStep: number;
 }
 
-export default function Chat({ onIntent }: ChatProps) {
+export default function Chat({ onIntent, isProcessing }: ChatProps) {
     const [input, setInput] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [localLoading, setLocalLoading] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         { id: '1', role: 'agent', content: "Systems Online. Aegis Protocol Active. Awaiting Command." },
     ]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const isLoading = localLoading || isProcessing;
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -41,7 +43,7 @@ export default function Chat({ onIntent }: ChatProps) {
         const userMsg = input;
         setInput('');
         setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', content: userMsg }]);
-        setIsLoading(true);
+        setLocalLoading(true);
 
         try {
             await new Promise(resolve => setTimeout(resolve, 1500)); // AI thinking delay
@@ -72,7 +74,7 @@ export default function Chat({ onIntent }: ChatProps) {
                 content: "⚠️ SYSTEM ALERT: Secure Uplink Failed. Check Server Connection."
             }]);
         } finally {
-            setIsLoading(false);
+            setLocalLoading(false);
         }
     };
 
@@ -113,9 +115,10 @@ export default function Chat({ onIntent }: ChatProps) {
                             className="flex justify-start"
                         >
                             <div className="bg-zinc-900/50 border border-purple-500/20 p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
-                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                                <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                                <Hammer className="w-4 h-4 text-purple-400 animate-pulse" />
+                                <span className="text-xs text-purple-400/70 font-mono animate-pulse">
+                                    USING TOOL: CHECK_RISK
+                                </span>
                             </div>
                         </motion.div>
                     )}
@@ -133,12 +136,24 @@ export default function Chat({ onIntent }: ChatProps) {
                         />
                         <Button
                             borderRadius="1.75rem"
-                            className="bg-white dark:bg-slate-900 text-black dark:text-white border-neutral-200 dark:border-slate-800 font-bold"
+                            className={`font-bold transition-all duration-300 ${isLoading
+                                ? 'bg-purple-900/50 text-purple-200 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
+                                : 'bg-white dark:bg-slate-900 text-black dark:text-white border-neutral-200 dark:border-slate-800'
+                                }`}
                             type="submit"
                             disabled={isLoading}
                             containerClassName="h-14 w-32"
                         >
-                            {isLoading ? 'SCANNING' : 'EXECUTE'}
+                            {isLoading ? (
+                                <motion.div
+                                    animate={{ rotate: [0, 15, -15, 0] }}
+                                    transition={{ repeat: Infinity, duration: 1.5 }}
+                                >
+                                    <Hammer className="w-6 h-6" />
+                                </motion.div>
+                            ) : (
+                                <ArrowRight className="w-6 h-6" />
+                            )}
                         </Button>
                     </form>
                 </div>
