@@ -106,11 +106,16 @@ docker build -t aegis-dev . && docker run -it aegis-dev bash
 
 ```
 aegis-risk-oracle/
-├── aegis-workflow/     # ⛓️ Chainlink CRE Workflow (main.ts)
-├── aegis-web/          # 🌐 Next.js 14 Frontend (Mission Control UI)
-├── contracts/          # 🔐 Solidity (AegisVault.sol)
-├── eliza/              # 🤖 ElizaOS Agent (character.json)
-└── integrations/       # 🔌 Agent plugins (ElizaOS, LangChain)
+├── aegis-workflow/       # ⛓️ Chainlink CRE Workflow (main.ts)
+├── aegis-web/            # 🌐 Next.js 14 Frontend (Mission Control UI)
+├── contracts/            # 🔐 Solidity (AegisVault.sol)
+├── eliza/                # 🤖 ElizaOS Agent (character.json)
+├── integrations/         # 🔌 Agent plugins (ElizaOS, LangChain)
+├── test-aegis.ps1        # 🧪 AI risk analysis test suite
+├── test-crypto.ps1       # 🔐 Cryptographic proof tests
+├── test-all-apis.ts      # 📡 API connectivity tests
+├── start-aegis.ps1       # 🚀 Start demo stack
+└── stop-aegis.ps1        # 🛑 Stop demo stack
 ```
 
 ---
