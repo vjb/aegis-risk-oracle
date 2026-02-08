@@ -13,11 +13,11 @@ Aegis is a production-ready risk oracle that prevents AI agents from executing s
 
 | Requirement | Status | Implementation Details |
 | :--- | :---: | :--- |
-| **CRE Workflow** | ✅ | `aegis-workflow/main.ts` - Simulated via CRE CLI |
+| **CRE Workflow** | ✅ | [`aegis-workflow/main.ts`](file:///c:/Users/vjbel/hacks/chainhack/aegis-workflow/main.ts) - Simulated via CRE CLI |
 | **External APIs** | ✅ | CoinGecko, GoPlus, QRNG (parallel fetching) |
 | **LLM Integration** | ✅ | GPT-4o-mini for multi-factor risk synthesis |
 | **Compliance Storage** | ✅ | Pinata/IPFS integration for verifiable audit archiving |
-| **On-Chain Verification** | ✅ | `contracts/AegisVault.sol` (Local Anvil & Base Sepolia ready) |
+| **On-Chain Verification** | ✅ | [`contracts/AegisVault.sol`](file:///c:/Users/vjbel/hacks/chainhack/contracts/AegisVault.sol) (Local Anvil & Base Sepolia ready) |
 | **Cryptographic Locks** | ✅ | Identity, Value, Time, and Reasoning (Quad-Lock Standard) |
 
 ---
@@ -135,7 +135,7 @@ docker exec aegis_dev sh -c "cd /app/aegis-workflow && bun run verify-signature.
 
 ## 🎬 E2E Demo Showcase
 
-`run-full-flow.ps1` demonstrates the complete integration:
+[`run-full-flow.ps1`](file:///c:/Users/vjbel/hacks/chainhack/run-full-flow.ps1) demonstrates the complete integration:
 
 **🚀 AEGIS FULL E2E DEMO: AI → SIGNATURE → BLOCKCHAIN**
 
@@ -157,7 +157,7 @@ docker exec aegis_dev sh -c "cd /app/aegis-workflow && bun run verify-signature.
 
 ## 🌐 Visual Dashboard (Simulation Mode)
 
-`start-aegis.ps1` launches the visual demo stack (No blockchain required):
+[`start-aegis.ps1`](file:///c:/Users/vjbel/hacks/chainhack/start-aegis.ps1) launches the visual demo stack (No blockchain required):
 
 **1. Frontend (`localhost:3005`) - The "Movie Set"**
 

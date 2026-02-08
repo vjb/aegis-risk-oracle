@@ -20,6 +20,8 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
     
     $cmd = "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload $PayloadFile"
     
+    $inAuditBody = $false
+    
     docker exec aegis_dev sh -c "$cmd" 2>&1 | ForEach-Object {
         $rawLine = $_.ToString()
         $line = $rawLine.Trim()
@@ -38,34 +40,38 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
             return
         }
 
-        # Filter out the JSON blob from the direct output (it's captured in Global)
-        if ($line -match '^\s*"\{.*tokenAddress.*\}"') {
-            $GLOBAL:LastJsonResult = $line.Trim('"')
+        # --- HIGHLIGHTING LOGIC ---
+        
+        # 1. State Machine for Multiline AI Audit Text (The "Big Story")
+        # We want this to POP in Yellow
+        if ($line -match "BEGIN AI RISK AUDIT") {
+            $inAuditBody = $true
+            Write-Host $rawLine -ForegroundColor Cyan
+            return
+        }
+        
+        if ($line -match "END AI RISK AUDIT") {
+            $inAuditBody = $false
+            Write-Host $rawLine -ForegroundColor Cyan
             return
         }
 
-        # Highlight according to logic (using text-based markers instead of emojis to avoid PS encoding errors)
+        if ($inAuditBody) {
+            Write-Host "   $line" -ForegroundColor Yellow
+            return
+        }
+
+        # 2. General Highlighting
         if ($line -match "VERDICT:") {
             if ($line -match "EXECUTE") { Write-Host $rawLine -ForegroundColor Green }
             else { Write-Host $rawLine -ForegroundColor Red }
         }
-        elseif ($line -match "--- VERIFIABLE AI AUDIT ---") {
-            $GLOBAL:InAuditBlock = $true
-            Write-Host $rawLine -ForegroundColor Cyan
-        }
-        elseif ($line -match "COMPLIANCE ARCHIVE|CRYPTOGRAPHIC TRIPLE-LOCK") {
-            $GLOBAL:InAuditBlock = $false
-            Write-Host $rawLine -ForegroundColor Yellow
-        }
-        elseif ($GLOBAL:InAuditBlock -eq $true) {
-            Write-Host $rawLine -ForegroundColor Yellow
-        }
-        elseif ($line -match "INPUT RECEIVED|AI AUDIT|PROTECTION ACTIVE") { Write-Host $rawLine -ForegroundColor Cyan }
-        elseif ($line -match "DATA ACQUISITION|AI SYNTHESIS") { Write-Host $rawLine -ForegroundColor Yellow }
+        elseif ($line -match "INPUT RECEIVED|PROTECTION ACTIVE") { Write-Host $rawLine -ForegroundColor Cyan }
+        elseif ($line -match "DATA ACQUISITION|AI SYNTHESIS|COMPLIANCE ARCHIVE|CRYPTOGRAPHIC TRIPLE-LOCK") { Write-Host $rawLine -ForegroundColor Cyan }
         elseif ($line -match "Fetch|Send|Ping") { Write-Host $rawLine -ForegroundColor Gray }
         elseif ($line -match "Success|Audit Pinned|Resolved|Scan") { Write-Host $rawLine -ForegroundColor Green }
-        elseif ($line -match "Fallback|Warning|Error") { Write-Host $rawLine -ForegroundColor Yellow }
-        elseif ($line -match "Signing Payload|DON SIGNATURE|Hash|Salt|Price|User") { Write-Host $rawLine -ForegroundColor Yellow }
+        elseif ($line -match "Fallback|Warning|Error") { Write-Host $rawLine -ForegroundColor Red }
+        elseif ($line -match "Signing Payload|DON SIGNATURE|Hash|Salt|Price|User") { Write-Host $rawLine -ForegroundColor White }
         else { Write-Host $rawLine }
     }
 }

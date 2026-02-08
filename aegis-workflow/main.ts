@@ -132,13 +132,14 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     }).result();
 
     const aiParsed = JSON.parse((json(aiCall) as any).choices[0].message.content);
-    const reasoningText = aiParsed.reasoning;
-    const finalDecision = aiParsed.decision;
-    const finalScore = aiParsed.risk_score;
+    const reasoningText = aiParsed.reasoning || "REASONING_NOT_FOUND";
+    const finalDecision = aiParsed.decision || "REJECT";
+    const finalScore = aiParsed.risk_score || 100;
 
-    runtime.log(`   📥 [OAI] Reasoning Captured. Verdict: ${finalDecision === "EXECUTE" ? GREEN : RED}${finalDecision}${RESET}`);
-    runtime.log(`\n${CYAN}--- VERIFIABLE AI AUDIT ---${RESET}`);
-    runtime.log(reasoningText);
+    runtime.log(`   📥 [OAI] Reasoning Captured. Verdict: ${finalDecision === 'EXECUTE' ? GREEN : RED}${finalDecision}${RESET}`);
+    runtime.log(`\n   ${CYAN}--- BEGIN AI RISK AUDIT ---${RESET}`);
+    runtime.log(`   ${YELLOW}[ANALYSIS]: ${reasoningText}${RESET}`);
+    runtime.log(`   ${CYAN}--- END AI RISK AUDIT ---${RESET}\n`);
 
     // 4. 🚀 PINATA COMPLIANCE STORAGE (The "Big Story")
     runtime.log(`\n${YELLOW}━━━ 💾  COMPLIANCE ARCHIVE (IPFS Proof) ━━━${RESET}`);
