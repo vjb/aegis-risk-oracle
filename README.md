@@ -75,7 +75,13 @@ Before running the Quick Start, ensure your environment is ready.
 
 ## 🚀 Quick Start
 
-> *⚠️ **Note for Mac/Linux Users:** This project uses PowerShell automation. Please install **PowerShell Core (pwsh)** or manually run the commands listed inside the `.ps1` files.*
+> *⚠️ **Note for Mac/Linux Users:** This project uses PowerShell for automation. However, you can run the core verification logic directly via Docker using these commands:*
+>
+> **1. Run CRE Simulation (AI Risk Logic):**
+> `docker exec aegis_dev sh -c "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload /app/tests/payloads/test-payload-pass.json"`
+>
+> **2. Verify Cryptography (Triple Lock):**
+> `docker exec aegis_dev sh -c "cd /app/aegis-workflow && bun run verify-signature.ts"`
 
 **1. THE UBER TESTER (Verify ALL systems in one command)**
 ```powershell
