@@ -40,36 +40,38 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
             return
         }
 
-        # --- HIGHLIGHTING LOGIC ---
-        
+        # Strip ANSI escape sequences and technical metadata for clean processing
+        $cleanLine = ($rawLine -replace "\x1b\[[0-9;]*m", "").Trim()
+        $cleanLine = $cleanLine -replace '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\s+\[USER LOG\]\s*', ''
+
         # 1. State Machine for Multiline AI Audit Text (The "Big Story")
-        # We want this to POP in Yellow
-        if ($line -match "BEGIN AI RISK AUDIT") {
+        if ($cleanLine -match "BEGIN AI RISK AUDIT") {
             $inAuditBody = $true
-            Write-Host $rawLine -ForegroundColor Cyan
+            Write-Host "   $cleanLine" -ForegroundColor White
             return
         }
         
-        if ($line -match "END AI RISK AUDIT") {
+        if ($cleanLine -match "END AI RISK AUDIT") {
             $inAuditBody = $false
-            Write-Host $rawLine -ForegroundColor Cyan
+            Write-Host "   $cleanLine" -ForegroundColor White
             return
         }
 
         if ($inAuditBody) {
-            Write-Host "   $line" -ForegroundColor Yellow
+            Write-Host "      $cleanLine" -ForegroundColor Yellow
             return
         }
 
         # 2. General Highlighting
-        if ($line -match "VERDICT:") {
-            if ($line -match "EXECUTE") { Write-Host $rawLine -ForegroundColor Green }
+        if ($cleanLine -match "VERDICT:") {
+            if ($cleanLine -match "EXECUTE") { Write-Host $rawLine -ForegroundColor Green }
             else { Write-Host $rawLine -ForegroundColor Red }
         }
         elseif ($line -match "INPUT RECEIVED|PROTECTION ACTIVE") { Write-Host $rawLine -ForegroundColor Cyan }
         elseif ($line -match "DATA ACQUISITION|AI SYNTHESIS|COMPLIANCE ARCHIVE|CRYPTOGRAPHIC TRIPLE-LOCK") { Write-Host $rawLine -ForegroundColor Cyan }
         elseif ($line -match "Fetch|Send|Ping") { Write-Host $rawLine -ForegroundColor Gray }
-        elseif ($line -match "Success|Audit Pinned|Resolved|Scan") { Write-Host $rawLine -ForegroundColor Green }
+        elseif ($line -match "Resolved|Scan") { Write-Host $rawLine -ForegroundColor Green }
+        elseif ($line -match "Success|Audit Pinned") { Write-Host $rawLine -ForegroundColor Green }
         elseif ($line -match "Fallback|Warning|Error") { Write-Host $rawLine -ForegroundColor Red }
         elseif ($line -match "Signing Payload|DON SIGNATURE|Hash|Salt|Price|User") { Write-Host $rawLine -ForegroundColor White }
         else { Write-Host $rawLine }

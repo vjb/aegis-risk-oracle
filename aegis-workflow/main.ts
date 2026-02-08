@@ -137,9 +137,11 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     const finalScore = aiParsed.risk_score || 100;
 
     runtime.log(`   📥 [OAI] Reasoning Captured. Verdict: ${finalDecision === 'EXECUTE' ? GREEN : RED}${finalDecision}${RESET}`);
-    runtime.log(`\n   ${CYAN}--- BEGIN AI RISK AUDIT ---${RESET}`);
-    runtime.log(`   ${YELLOW}[ANALYSIS]: ${reasoningText}${RESET}`);
-    runtime.log(`   ${CYAN}--- END AI RISK AUDIT ---${RESET}\n`);
+    runtime.log("   --- BEGIN AI RISK AUDIT ---");
+    runtime.log(`   [ENTITY]: Aegis Verifiable Oracle (CRE)`);
+    runtime.log(`   [SECURITY]: Multi-Factor Risk Assessment`);
+    runtime.log(`   [ANALYSIS]: ${reasoningText}`);
+    runtime.log("   --- END AI RISK AUDIT ---");
 
     // 4. 🚀 PINATA COMPLIANCE STORAGE (The "Big Story")
     runtime.log(`\n${YELLOW}━━━ 💾  COMPLIANCE ARCHIVE (IPFS Proof) ━━━${RESET}`);
