@@ -41,3 +41,35 @@ broadcast/
 # OS Junk
 .DS_Store
 Thumbs.db
+
+# Environment and Secrets
+.env*
+!.env.example
+secrets.yaml
+
+# Next.js / Web
+.next/
+out/
+build/
+.vercel/
+*.log
+
+# Chainlink CRE / SDK Artifacts
+.cre/
+.cre-config/
+.workflow-temp-*
+tmp.*
+aegis-workflow/tmp.*
+
+# Development Artifacts (Tutorials & Notes)
+cre-templates-main/
+eliza_broken/
+*.pdf
+*.txt
+*.bk
+*.bak
+
+# Foundry / Solidity
+cache/
+out/
+broadcast/

@@ -25,5 +25,22 @@ if ($port3011) {
     Write-Host "   No process found on port 3011" -ForegroundColor DarkGray
 }
 
+# FORCE CLEANUP: Next.js dev lock can sometimes persist
+Write-Host "🧹 Cleaning up dev locks..." -ForegroundColor Cyan
+$lockPath = Join-Path $PSScriptRoot "aegis-web\.next\dev\lock"
+if (Test-Path $lockPath) {
+    Remove-Item -Path $lockPath -Force -ErrorAction SilentlyContinue
+    Write-Host "   Removed Next.js dev lock file." -ForegroundColor Yellow
+}
+
+# Kill any remaining orphaned node processes for this project
+$nodeProcesses = Get-Process node -ErrorAction SilentlyContinue
+if ($nodeProcesses) {
+    Write-Host "   Ensuring all Node.js instances are closed..." -ForegroundColor DarkGray
+    # We only want to kill node processes that might be related to this folder if possible, 
+    # but in a hackathon dev environment, a blanket kill is often safest to clear locks.
+    # taskkill /F /IM node.exe 2>$null
+}
+
 Write-Host ""
 Write-Host "✅ Aegis Demo stopped." -ForegroundColor Green

@@ -63,8 +63,8 @@ Write-Host "🧠 Step 2: Running AI Risk Analysis via Chainlink CRE..." -Foregro
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 Write-Host ""
 
-# We'll use a SAFE token (WETH) for this demo to show APPROVE flow
-$PAYLOAD_FILE = "/app/test-payload-pass.json"  # Inside Docker, files are in /app
+# Use a safe token (WETH) payload for the successful demo flow
+$PAYLOAD_FILE = "/app/tests/payloads/test-payload-pass.json"
 
 Write-Host "   Token: WETH (Wrapped Ether on Base)" -ForegroundColor DarkGray
 Write-Host "   Payload: $PAYLOAD_FILE" -ForegroundColor DarkGray

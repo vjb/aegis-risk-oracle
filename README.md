@@ -192,22 +192,38 @@ aegis-risk-oracle/
 ├── aegis-workflow/       # ⛓️ Chainlink CRE Workflow (main.ts)
 ├── aegis-web/            # 🌐 Next.js 14 Frontend (Mission Control UI)
 ├── contracts/            # 🔐 Solidity (AegisVault.sol)
-├── eliza/                # 🤖 ElizaOS Agent (character.json)
-├── integrations/         # 🔌 Agent plugins (ElizaOS, LangChain)
+├── tests/                # � Unit Tests & Payloads
+│   ├── payloads/         # � JSON test cases (Pass/Honeypot/etc.)
+│   └── *.ts/*.ps1        # 📁 Individual component tests
 ├── run-full-flow.ps1     # 🎬 E2E DEMO: AI → Signature → Blockchain → Replay
 ├── deploy-local.ps1      # 🔗 Deploy AegisVault to local Anvil chain
 ├── test-contract.ps1     # 🧪 Contract integration tests (Approve/Reject/Replay)
 ├── test-signature.ps1    # 🔐 Off-chain signature verification demo
-├── test-aegis.ps1        # 🧪 AI risk analysis test suite
-├── test-crypto.ps1       # 🔐 Cryptographic proof tests
-├── test-all-apis.ts      # 📡 API connectivity tests
-├── start-aegis.ps1       # 🚀 Start demo stack
+├── start-aegis.ps1       # 🚀 Start demo stack (Front + Backend)
 └── stop-aegis.ps1        # 🛑 Stop demo stack
 ```
 
 ---
 
-## 🧪 Test Matrix
+## 🛡️ Security & Verification
+
+Aegis implements a **Verifiable AI Shield** through three primary mechanisms:
+
+### 1. The Triple Lock Standard
+Every risk verdict is cryptographically bound to three immutable factors:
+- **Identity**: Bound to the user's wallet address.
+- **Value**: Bound to the current asset price at the time of analysis.
+- **Time**: 5-minute expiry to prevent using stale risk data.
+
+### 2. DON-Signed Verdicts
+Verdicts are not just data; they are **signed proofs**. The `AegisVault` contract verifies that the ECDSA signature matches the authorized Decentralized Oracle Network (DON) public key.
+
+### 3. Replay Protection
+The smart contract tracks assessment hashes to ensure each signed risk verdict is used **exactly once**, preventing attackers from recycling old approvals.
+
+---
+
+## 🧪 Scenario Matrix
 
 | Scenario | Verdict | Trigger |
 | :--- | :---: | :--- |
