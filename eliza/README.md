@@ -17,7 +17,7 @@ User: "Swap 1 ETH for PEPE"
 Aegis: "REQUEST RECEIVED. INITIATING SWAP PARAMETER VALIDATION via Chainlink CRE. STANDBY FOR COMPLIANCE CHECK."
 ```
 
-## 🏆 Hackathon Qualification: ElizaOS Integration
+## 🧩 ElizaOS Integration
 
 This project implements the **ElizaOS** multi-agent framework to power the "Aegis" character.
 

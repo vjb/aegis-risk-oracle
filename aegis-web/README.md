@@ -15,7 +15,7 @@
 | Styling | Tailwind CSS + Shadcn UI + Aceternity UI |
 | Animation | Framer Motion |
 
-## 🏆 Hackathon Qualification: Visualization
+## 🌐 Visual Analytics
 
 Aegis Web provides the **Real-Time Reserve Health Checks** and **Automated Risk Monitoring** visualization required by the track.
 

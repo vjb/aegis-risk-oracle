@@ -12,7 +12,7 @@ This plugin allows any ElizaOS agent to use Aegis as a security guardrail before
 | `aegis-plugin.ts` | Intercepts `SWAP`/`BUY` intents, calls Aegis Oracle |
 | `aegis-provider.ts` | Verifies DON signatures locally |
 
-## 🏆 Hackathon Qualification: Plugin Architecture
+## 🔌 Plugin Architecture
 
 This plugin demonstrates the **Automated Risk Monitoring** integration path for any ElizaOS agent.
 

@@ -40,7 +40,7 @@ The signature binds:
 - **Value** - Asset price (ensures immutability)
 - **Time** - 5-minute expiry (prevents replay)
 
-## 🏆 Hackathon Qualification: Protocol Safeguard Triggers
+## 🛡️ Protocol Safeguards
 
 `AegisVault.sol` implements the mandatory **Protocol Safeguard Triggers**.
 

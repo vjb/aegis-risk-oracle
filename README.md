@@ -114,7 +114,7 @@ We strictly adhered to the `CRE Best Practices` guide to ensure a production-gra
 
 ---
 
-## 🤖 ElizaOS Integration (Prize Qualification)
+## 🤖 ElizaOS Integration
 
 Aegis leverages the **ElizaOS** multi-agent framework to provide a conversational interface for risk assessment.
 
