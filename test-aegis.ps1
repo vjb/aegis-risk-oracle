@@ -50,6 +50,7 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
             # 3. State Machine for AI Audit (The "Big Story")
             if ($message -match "AI RISK ANALYSIS \(Logic & Reasoning\)") {
                 $inAuditBody = $true
+                $inAnalysisSection = $false # Reset for new section
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Cyan
                 return
@@ -58,6 +59,7 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
             # End audit when next section starts
             if ($inAuditBody -and ($message -match "COMPLIANCE ARCHIVE" -or $message -match "Verdict:")) {
                 $inAuditBody = $false
+                $inAnalysisSection = $false
                 # Fall through to standard handling for this line
             }
 
@@ -65,18 +67,14 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 
                 if ($message -match "\[ANALYSIS\]:") {
-                     # Just print it yellow, let terminal handle wrapping naturally
+                     $inAnalysisSection = $true
                      Write-Host "$message" -ForegroundColor Yellow
-                } elseif ($message -match "\[ENTITY\]:|\[SECURITY\]:") {
-                     $parts = $message -split ":", 2
-                     Write-Host $parts[0] -NoNewline -ForegroundColor Yellow
-                     if ($parts.Length -gt 1) {
-                        Write-Host ":$($parts[1])" -ForegroundColor White
-                     } else {
-                        Write-Host ""
-                     }
+                } elseif ($inAnalysisSection) {
+                     # Continued lines of analysis should stay yellow
+                     Write-Host "$message" -ForegroundColor Yellow
                 } else {
-                    Write-Host "$message" -ForegroundColor White
+                     # ENTITY, SECURITY, etc. should be white
+                     Write-Host "$message" -ForegroundColor White
                 }
                 return
             }

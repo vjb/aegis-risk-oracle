@@ -155,7 +155,7 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     const aiParsed = JSON.parse((json(aiCall) as any).choices[0].message.content);
     const reasoningText = aiParsed.reasoning || "REASONING_NOT_FOUND";
     const finalDecision = aiParsed.decision || "REJECT";
-    const finalScore = Math.min(Math.max(Number(aiParsed.risk_score || 100), 0), 100);
+    const finalScore = Math.floor(Math.min(Math.max(Number(aiParsed.risk_score || 100), 0), 100));
 
     runtime.log(`   📥 [OAI] Reasoning Captured. Verdict: ${finalDecision === 'EXECUTE' ? GREEN : RED}${finalDecision}${RESET}`);
 
