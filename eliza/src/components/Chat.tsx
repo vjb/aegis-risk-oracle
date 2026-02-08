@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/moving-border"; // Using the Moving Border Button wrapper
-import { Button as ShadcnButton } from "@/components/ui/button"; // Standard button for internal use if needed
 
 interface Message {
     id: string;
@@ -61,7 +60,7 @@ export default function Chat({ onIntent }: ChatProps) {
                 content: data.text
             }]);
 
-            if (data.content || userMsg.toLowerCase().includes('swap') || userMsg.toLowerCase().includes('buy') || userMsg.toLowerCase().includes('trade')) {
+            if (data.content || /swap|buy|trade|sell|check|scan|verify|risk|analyze|safe|token/i.test(userMsg)) {
                 onIntent(userMsg);
             }
 
