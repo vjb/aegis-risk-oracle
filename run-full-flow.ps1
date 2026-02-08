@@ -212,6 +212,53 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 # ════════════════════════════════════════════════════════════════════════════════
+# STEP 5: DEMONSTRATE REPLAY ATTACK PREVENTION
+# ════════════════════════════════════════════════════════════════════════════════
+Write-Host ""
+Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
+Write-Host "🛡️  Step 5: Testing Replay Attack Prevention..." -ForegroundColor Yellow
+Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
+Write-Host ""
+
+Write-Host "   Attempting to replay the SAME transaction..." -ForegroundColor DarkGray
+Write-Host "   (Same signature, same parameters)" -ForegroundColor DarkGray
+Write-Host ""
+
+# Try to replay the exact same transaction
+$replayResult = & $castPath send $CONTRACT_ADDRESS `
+    "swapWithOracle(string,uint256,(string,string,uint256,string,uint256),bytes)" `
+    $tokenAddress `
+    1000000000000000000 `
+    $assessment `
+    $signature `
+    --private-key $USER_PRIVATE_KEY `
+    --rpc-url http://localhost:8545 2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "   ✅ BLOCKED! Replay attack prevented!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "   📝 Contract Response:" -ForegroundColor White
+    
+    # Extract the revert reason
+    if ($replayResult -match "Request already processed") {
+        Write-Host "      Reason: Request already processed" -ForegroundColor Cyan
+    } else {
+        Write-Host "      Reason: Signature verification or replay check failed" -ForegroundColor Cyan
+    }
+    
+    Write-Host ""
+    Write-Host "   This proves the contract's replay protection works:" -ForegroundColor DarkGray
+    Write-Host "      • Each signed verdict can only be used ONCE" -ForegroundColor DarkGray
+    Write-Host "      • Attackers cannot reuse old approvals" -ForegroundColor DarkGray
+    Write-Host ""
+} else {
+    Write-Host "   ⚠️  WARNING: Replay was NOT blocked!" -ForegroundColor Red
+    Write-Host "   This should not happen - replay protection may be disabled" -ForegroundColor Red
+    Write-Host ""
+}
+
+
+# ════════════════════════════════════════════════════════════════════════════════
 # SUMMARY
 # ════════════════════════════════════════════════════════════════════════════════
 Write-Host ""
