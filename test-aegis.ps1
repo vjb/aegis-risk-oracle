@@ -16,7 +16,7 @@ Write-Host "══════════════════════�
 # Function to run a single test scenario
 function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
     Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $Color
-    Write-Host "🧠 PHASE 1: $ScenarioName" -ForegroundColor $Color
+    Write-Host "🧠 $ScenarioName" -ForegroundColor $Color
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor $Color
     
     $cmd = "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload $PayloadFile"
