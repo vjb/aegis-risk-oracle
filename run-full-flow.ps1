@@ -135,26 +135,32 @@ Write-Host "━━━━━━━━━━━━━━━━━━━━━━�
 Write-Host ""
 
 # Extract data from CRE result
+$userAddress = $result.userAddress
 $tokenAddress = $result.tokenAddress
 $chainId = $result.chainId
-$riskScore = $result.riskScore
-$decision = $result.decision
+$askingPrice = $result.askingPrice
 $timestamp = $result.timestamp
+$decision = $result.decision
+$riskScore = $result.riskScore
+$salt = $result.salt
+$reasoningHash = $result.reasoningHash
 
-# The signature from the CRE (in a real deployment, this would be from the DON)
-# For this demo, we use a mock signature since the contract's _verifySignature is mocked
-$signature = "0x" + ("1234567890abcdef" * 8)  # Mock signature (128 chars = 64 bytes)
+# The signature from the CRE
+$signature = $result.signature
 
-# Build the RiskAssessment struct for the smart contract
-# Solidity struct: (string tokenAddress, string chainId, uint256 riskScore, string decision, uint256 timestamp)
-$assessment = "($tokenAddress,$chainId,$riskScore,$decision,$timestamp)"
+# Convert asking price to integer (8 decimals) as expected by the contract signing logic
+$askingPriceWei = [Math]::Round([double]$askingPrice * 1e8)
+
+# Build the RiskAssessment struct for the smart contract (AegisVault v2.0)
+# Solidity struct: (address userAddress, address tokenAddress, uint256 chainId, uint256 askingPrice, uint256 timestamp, string decision, uint8 riskScore, bytes32 salt, bytes32 reasoningHash)
+$assessment = "($userAddress,$tokenAddress,$chainId,$askingPriceWei,$timestamp,$decision,$riskScore,$salt,$reasoningHash)"
 
 Write-Host "   📋 Transaction Parameters:" -ForegroundColor White
+Write-Host "      User:       $userAddress" -ForegroundColor DarkGray
 Write-Host "      Token:      $tokenAddress" -ForegroundColor DarkGray
 Write-Host "      Chain ID:   $chainId" -ForegroundColor DarkGray
-Write-Host "      Risk Score: $riskScore" -ForegroundColor DarkGray
-Write-Host "      Decision:   $decision" -ForegroundColor DarkGray
-Write-Host "      Signature:  $($signature.Substring(0, 20))..." -ForegroundColor DarkGray
+Write-Host "      Aegis Proof: $($reasoningHash.Substring(0, 20))..." -ForegroundColor DarkGray
+Write-Host "      Signature:   $($signature.Substring(0, 20))..." -ForegroundColor DarkGray
 Write-Host ""
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -170,10 +176,9 @@ $USER_PRIVATE_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6
 
 Write-Host "   Calling AegisVault.swapWithOracle()..." -ForegroundColor Yellow
 
-# Call the smart contract
-# IMPORTANT: First parameter must match the tokenAddress in the assessment struct
+# Call the smart contract with the v2.0 struct definition
 $txResult = & $castPath send $CONTRACT_ADDRESS `
-    "swapWithOracle(string,uint256,(string,string,uint256,string,uint256),bytes)" `
+    "swapWithOracle(address,uint256,(address,address,uint256,uint256,uint256,string,uint8,bytes32,bytes32),bytes)" `
     $tokenAddress `
     1000000000000000000 `
     $assessment `
@@ -206,6 +211,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "      • Risk score was too high (≥7)" -ForegroundColor DarkGray
     Write-Host "      • Decision was REJECT" -ForegroundColor DarkGray
     Write-Host "      • Signature verification failed" -ForegroundColor DarkGray
+    Write-Host "      • Salt was already used (Replay Protection)" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "   Output:" -ForegroundColor DarkGray
     Write-Host $txResult -ForegroundColor DarkGray
@@ -221,12 +227,12 @@ Write-Host "━━━━━━━━━━━━━━━━━━━━━━�
 Write-Host ""
 
 Write-Host "   Attempting to replay the SAME transaction..." -ForegroundColor DarkGray
-Write-Host "   (Same signature, same parameters)" -ForegroundColor DarkGray
+Write-Host "   (Using the same salt: $($salt.Substring(0,18))...)" -ForegroundColor DarkGray
 Write-Host ""
 
 # Try to replay the exact same transaction
 $replayResult = & $castPath send $CONTRACT_ADDRESS `
-    "swapWithOracle(string,uint256,(string,string,uint256,string,uint256),bytes)" `
+    "swapWithOracle(address,uint256,(address,address,uint256,uint256,uint256,string,uint8,bytes32,bytes32),bytes)" `
     $tokenAddress `
     1000000000000000000 `
     $assessment `

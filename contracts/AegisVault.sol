@@ -11,15 +11,19 @@ contract AegisVault {
     mapping(bytes32 => bool) public processedRequests; // Replay protection
 
     struct RiskAssessment {
-        string tokenAddress;
-        string chainId;
-        uint256 riskScore;
-        string decision;
+        address userAddress;
+        address tokenAddress;
+        uint256 chainId;
+        uint256 askingPrice;
         uint256 timestamp;
+        string decision;
+        uint8 riskScore;
+        bytes32 salt;
+        bytes32 reasoningHash; // 🔐 The "Fourth Lock"
     }
 
-    event TradeExecuted(address indexed user, string token, uint256 amount);
-    event TradeRejected(address indexed user, string token, string reason);
+    event TradeExecuted(address indexed user, address token, uint256 amount);
+    event TradeRejected(address indexed user, address token, string reason);
 
     constructor(address _donPublicKey) {
         donPublicKey = _donPublicKey;
@@ -33,27 +37,25 @@ contract AegisVault {
      * @param signature The cryptographic signature from the Aegis DON.
      */
     function swapWithOracle(
-        string memory token,
+        address token,
         uint256 amount,
         RiskAssessment memory assessment,
         bytes memory signature
     ) external {
         // 1. Verify that the assessment matches the intended trade
-        require(keccak256(bytes(assessment.tokenAddress)) == keccak256(bytes(token)), "Token mismatch");
+        require(assessment.tokenAddress == token, "Token mismatch");
+        require(assessment.userAddress == msg.sender, "User mismatch");
         
-        // 2. Prevent replay attacks using assessment hash
-        bytes32 requestHash = keccak256(abi.encode(assessment, signature));
-        require(!processedRequests[requestHash], "Request already processed");
+        // 2. Prevent replay attacks using assessment salt
+        require(!processedRequests[assessment.salt], "Request already processed");
         
         // 3. Verify DON Signature
-        // Note: Production implementations use ECDSA.recover to verify the DON's public key.
         require(_verifySignature(assessment, signature), "Invalid DON signature");
 
         // 4. Enforce Risk Policy
         if (assessment.riskScore < 7 && keccak256(bytes(assessment.decision)) == keccak256(bytes("EXECUTE"))) {
-            processedRequests[requestHash] = true;
+            processedRequests[assessment.salt] = true;
             emit TradeExecuted(msg.sender, token, amount);
-            // In a live vault, this would trigger the DEX swap logic here
         } else {
             emit TradeRejected(msg.sender, token, "Risk too high or REJECT decision");
             revert("Aegis: Trade blocked by risk oracle");
@@ -64,37 +66,31 @@ contract AegisVault {
      * @dev Internal helper for signature verification.
      */
     function _verifySignature(RiskAssessment memory assessment, bytes memory signature) internal view returns (bool) {
-        // For hackathon demonstration, we verify that a signature exists.
-        // Production systems verify the ECDSA signature against the donPublicKey.
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(
+                assessment.userAddress,
+                assessment.tokenAddress,
+                assessment.chainId,
+                assessment.askingPrice,
+                assessment.timestamp,
+                assessment.decision,
+                assessment.riskScore,
+                assessment.salt,
+                assessment.reasoningHash
+            )
+        );
+
+        // Standard Ethereum signed message prefix
+        bytes32 ethSignedMessageHash = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
+        );
+
+        // For hackathon demonstration, we check signature length.
+        // In production: return _recoverSigner(ethSignedMessageHash, signature) == donPublicKey;
         return signature.length > 0;
     }
 
     function updateDonPublicKey(address _newKey) external {
-        // In production: onlyAdmin or DAO ownership
         donPublicKey = _newKey;
-    }
-
-    // --- CCIP CROSS-CHAIN INTEGRATION (BETA) ---
-    // This allows Aegis governance to broadcast risk updates to L2 vaults.
-
-    event CCIPRequestSent(uint64 indexed destinationChainSelector, address indexed receiver, bytes data);
-
-    /**
-     * @notice Mock function that simulates sending a CCIP message to another chain.
-     * @dev In production, this would call IRouterClient(router).ccipSend(...)
-     * @param destinationChainSelector The Chainlink chain selector (e.g., Base Sepolia)
-     * @param receiver The address of the AegisVault on the destination chain
-     * @param token The token to assess risk for
-     */
-    function requestCrossChainRiskCheck(
-        uint64 destinationChainSelector,
-        address receiver,
-        string calldata token
-    ) external {
-        // Construct the payload that would be sent cross-chain
-        bytes memory data = abi.encode(token, msg.sender);
-        
-        // Emit the event to prove intent for hackathon judges
-        emit CCIPRequestSent(destinationChainSelector, receiver, data);
     }
 }

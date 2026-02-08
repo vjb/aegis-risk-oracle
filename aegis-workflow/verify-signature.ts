@@ -47,16 +47,17 @@ async function verifyDONSignature(
         decision: string;
         riskScore: number;
         salt: Hex;
+        reasoningHash: Hex; // 🔐 NEW: The Fourth Lock
         messageHash: Hex;
         signature: Hex;
         signer: string;
     }
 ): Promise<{ valid: boolean; reason: string; recoveredAddress?: string }> {
     // 1. Reconstruct the message hash (same as what DON signed)
-    // schema: userAddress, tokenAddress, chainId, askingPrice, timestamp, decision, riskScore, salt
+    // schema: userAddress, tokenAddress, chainId, askingPrice, timestamp, decision, riskScore, salt, reasoningHash
     const reconstructedHash = keccak256(
         encodePacked(
-            ['address', 'address', 'uint256', 'uint256', 'uint256', 'string', 'uint8', 'bytes32'],
+            ['address', 'address', 'uint256', 'uint256', 'uint256', 'string', 'uint8', 'bytes32', 'bytes32'],
             [
                 getAddress(signedResult.userAddress),
                 getAddress(signedResult.tokenAddress),
@@ -65,7 +66,8 @@ async function verifyDONSignature(
                 BigInt(signedResult.timestamp),
                 signedResult.decision,
                 signedResult.riskScore,
-                signedResult.salt
+                signedResult.salt,
+                signedResult.reasoningHash // 🔐 The Fourth Lock
             ]
         )
     );
@@ -118,7 +120,7 @@ async function createForgedSignature(originalResult: any): Promise<any> {
     // Recalculate message hash for the forged data
     forgedResult.messageHash = keccak256(
         encodePacked(
-            ['address', 'address', 'uint256', 'uint256', 'uint256', 'string', 'uint8', 'bytes32'],
+            ['address', 'address', 'uint256', 'uint256', 'uint256', 'string', 'uint8', 'bytes32', 'bytes32'],
             [
                 forgedResult.userAddress as `0x${string}`,
                 forgedResult.tokenAddress as `0x${string}`,
@@ -127,7 +129,8 @@ async function createForgedSignature(originalResult: any): Promise<any> {
                 BigInt(forgedResult.timestamp),
                 forgedResult.decision,
                 forgedResult.riskScore,
-                forgedResult.salt as Hex
+                forgedResult.salt as Hex,
+                forgedResult.reasoningHash as Hex // 🔐 The Fourth Lock
             ]
         )
     );
@@ -153,6 +156,7 @@ async function main() {
             console.log(`Token:     ${data.tokenAddress.substring(0, 10)}...`);
             console.log(`Amount:    $${data.askingPrice}`);
             console.log(`Decision:  ${data.decision}`);
+            console.log(`Aegis Proof: ${data.reasoningHash.substring(0, 18)}...`);
 
             const result = await verifyDONSignature(data);
             if (result.valid) {
@@ -169,7 +173,7 @@ async function main() {
     }
 
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("    🔐 AEGIS SIGNATURE VERIFICATION DEMO");
+    console.log("    🔐 AEGIS COMPLIANCE VERIFICATION DEMO v2.0");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log(`\n${CYAN}Expected DON Address: ${EXPECTED_DON_ADDRESS}${RESET}\n`);
 
@@ -180,12 +184,13 @@ async function main() {
 
     // Create a sample signed result (simulating what the workflow outputs)
     const sampleSalt = "0x" + "a1b2c3d4e5f6".padStart(64, '0') as Hex;
+    const sampleReasoningHash = keccak256(encodePacked(['string'], ["Token security verified. No honeypot detected."]));
     const sampleAskingPrice = "2100.00";
     const sampleUser = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8" as `0x${string}`;
     const sampleTimestamp = BigInt(Math.floor(Date.now() / 1000));
     const sampleHash = keccak256(
         encodePacked(
-            ['address', 'address', 'uint256', 'uint256', 'uint256', 'string', 'uint8', 'bytes32'],
+            ['address', 'address', 'uint256', 'uint256', 'uint256', 'string', 'uint8', 'bytes32', 'bytes32'],
             [
                 sampleUser,
                 "0x4200000000000000000000000000000000000006" as `0x${string}`,
@@ -194,7 +199,8 @@ async function main() {
                 sampleTimestamp,
                 "EXECUTE",
                 0,
-                sampleSalt
+                sampleSalt,
+                sampleReasoningHash
             ]
         )
     );
@@ -209,6 +215,7 @@ async function main() {
         decision: "EXECUTE",
         riskScore: 0,
         salt: sampleSalt,
+        reasoningHash: sampleReasoningHash,
         messageHash: sampleHash,
         signature: sampleSignature,
         signer: donAccount.address
@@ -221,7 +228,7 @@ async function main() {
     console.log(`Token:     ${validSignedResult.tokenAddress.substring(0, 10)}...`);
     console.log(`Amount:    $${validSignedResult.askingPrice}`);
     console.log(`Decision:  ${GREEN}${validSignedResult.decision}${RESET}`);
-    console.log(`Salt:      ${validSignedResult.salt.substring(0, 18)}...`);
+    console.log(`Aegis Proof: ${validSignedResult.reasoningHash.substring(0, 18)}...`);
     console.log(`Signature: ${validSignedResult.signature.substring(0, 22)}...`);
 
     const test1 = await verifyDONSignature(validSignedResult);
@@ -233,7 +240,7 @@ async function main() {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  TEST 2: Replay Attack Prevention
+    //  TEST 2: Replay Attack Prevention (Salt)
     // ═══════════════════════════════════════════════════════════════════════════
     console.log(`\n${BOLD}━━━ TEST 2: Replay Attack Prevention ━━━${RESET}`);
     console.log(`Attempting to replay the same signed result...`);
@@ -296,24 +303,23 @@ async function main() {
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  TEST 5: Tamper Attack Detection (Changing Amount)
+    //  TEST 5: Tamper Attack Detection (Changing Reasoning Hash)
     // ═══════════════════════════════════════════════════════════════════════════
     console.log(`\n${BOLD}━━━ TEST 5: Tamper Attack Detection ━━━${RESET}`);
-    console.log(`Original:  $${validSignedResult.askingPrice} → ${GREEN}VALID${RESET}`);
+    console.log(`Original Aegis Proof: ${validSignedResult.reasoningHash.substring(0, 18)}... → ${GREEN}VALID${RESET}`);
 
-    // Attacker tries to change the price to $5000 in the signed payload
+    // Attacker tries to change the reasoning hash to hide something
     const tamperedResult = {
         ...validSignedResult,
-        askingPrice: "5000.00",
+        reasoningHash: ("0x" + "bad1dea".padStart(64, '0')) as Hex,
         salt: ("0x" + "fee1dead".padStart(64, '0')) as Hex // New salt to avoid replay block
     };
 
-    console.log(`Tampered:  $${tamperedResult.askingPrice} (Modified after signing)`);
-    console.log(`Signature: ${tamperedResult.signature.substring(0, 22)}... (SAME)`);
+    console.log(`Tampered Proof: ${tamperedResult.reasoningHash.substring(0, 18)}... (Modified after signing)`);
 
     const test5 = await verifyDONSignature(tamperedResult);
     if (test5.valid) {
-        console.log(`\n${RED}⚠️  VULNERABLE: Tampered price accepted!${RESET}`);
+        console.log(`\n${RED}⚠️  VULNERABLE: Tampered reasoning hash accepted!${RESET}`);
     } else {
         console.log(`\n${GREEN}✅ BLOCKED: ${test5.reason}${RESET}`);
         console.log(`   Crypto check failed because hash changed while signature remained static.`);
@@ -328,7 +334,7 @@ async function main() {
     const oldTimestamp = BigInt(Math.floor(Date.now() / 1000) - 600);
     const oldHash = keccak256(
         encodePacked(
-            ['address', 'address', 'uint256', 'uint256', 'uint256', 'string', 'uint8', 'bytes32'],
+            ['address', 'address', 'uint256', 'uint256', 'uint256', 'string', 'uint8', 'bytes32', 'bytes32'],
             [
                 sampleUser,
                 validSignedResult.tokenAddress as `0x${string}`,
@@ -337,7 +343,8 @@ async function main() {
                 oldTimestamp,
                 validSignedResult.decision,
                 validSignedResult.riskScore,
-                validSignedResult.salt
+                validSignedResult.salt,
+                validSignedResult.reasoningHash
             ]
         )
     );
@@ -365,7 +372,7 @@ async function main() {
     //  SUMMARY
     // ═══════════════════════════════════════════════════════════════════════════
     console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`${BOLD}    📊 SECURITY VERIFICATION SUMMARY${RESET}`);
+    console.log(`${BOLD}    📊 AEGIS V2.0 SECURITY VERIFICATION SUMMARY${RESET}`);
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
     console.log(`    Test 1 (Protocol Compliance): ${test1.valid ? GREEN + "PASSED ✓" : RED + "FAILED ✗"}${RESET}`);
     console.log(`    Test 2 (Replay Attack):       ${!test2.valid ? GREEN + "BLOCKED ✓" : RED + "VULNERABLE ✗"}${RESET}`);
