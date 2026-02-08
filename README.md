@@ -33,42 +33,25 @@ AI agents executing autonomous trades lack safeguards against **honeypots**, **p
 ## 🏗️ Architecture
 
 ```mermaid
-graph TD
-    subgraph Client
-        Agent[("🤖 AI Agent<br/>(ElizaOS)")]
+sequenceDiagram
+    participant Agent as AI Agent (ElizaOS)
+    participant CRE as Aegis (Chainlink CRE)
+    participant APIs as External APIs
+    participant Vault as AegisVault.sol
+
+    Agent->>CRE: Risk Assessment Request
+    
+    par Parallel Fetching
+        CRE->>APIs: CoinGecko (Price)
+        CRE->>APIs: GoPlus (Security)
+        CRE->>APIs: QRNG (Entropy)
     end
-
-    subgraph "🛡️ Aegis Orchestration Layer"
-        CRE[("⚙️ Chainlink CRE<br/>(Workflow Engine)")]
-        Risk[("🧠 Risk Logic<br/>(GPT-4o)")]
-        Signer[("🔐 Triple Lock<br/>(Signer)")]
-    end
-
-    subgraph Blockchain
-        Vault[("🏦 AegisVault.sol<br/>(On-Chain Guard)")]
-    end
-
-    %% Flow connections
-    Agent -->|1. Request Risk Analysis| CRE
-    CRE -->|2. Parallel Fetch| CG(CoinGecko)
-    CRE -->|2. Parallel Fetch| GP(GoPlus)
-    CRE -->|3. Synthesize| Risk
-    Risk -->|4. Verdict| Signer
-    Signer -->|5. Signed Response| Agent
-    Agent -->|6. Execute Transaction| Vault
-
-    %% Clickable Code Links (The Magic)
-    click Agent "./integrations/elizaos/aegis-plugin.ts" "View Agent Plugin Code"
-    click CRE "./aegis-workflow/main.ts" "View Workflow Code"
-    click Signer "./aegis-workflow/main.ts" "View Signing Logic"
-    click Vault "./contracts/AegisVault.sol" "View Smart Contract"
-    click Risk "./aegis-workflow/main.ts" "View AI Logic"
-
-    style Agent fill:#1c1e21,stroke:#a855f7,stroke-width:2px,color:#fff
-    style CRE fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#fff
-    style Vault fill:#0f172a,stroke:#22c55e,stroke-width:2px,color:#fff
-    style Signer fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#fff
-    style Risk fill:#0f172a,stroke:#ef4444,stroke-width:2px,color:#fff
+    
+    CRE->>APIs: GPT-4o-mini (Synthesis)
+    CRE->>CRE: Triple Lock Signing
+    CRE-->>Agent: Signed Verdict
+    Agent->>Vault: Execute with Signature
+    Vault->>Vault: Verify → Execute/Reject
 ```
 
 ### The Triple Lock Standard
