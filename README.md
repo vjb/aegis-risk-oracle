@@ -91,6 +91,11 @@ const [priceResult, entropyResult, securityResult] = await Promise.all([
 ## 🚀 Quick Start
 
 ```powershell
+# Full E2E Demo (AI → Signature → Blockchain)
+.\run-full-flow.ps1   # 🚀 Complete integration: CRE analysis -> Anvil execution
+
+# OR run individual components:
+
 # 1. Start Anvil & Deploy Contract (Local Chain)
 .\deploy-local.ps1    # Starts Anvil on port 8545 & deploys AegisVault.sol
 
