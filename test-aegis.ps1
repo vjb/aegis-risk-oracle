@@ -9,14 +9,14 @@ $GLOBAL:LastJsonResult = $null
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host "          [AEGIS] PROTOCOL: MISSION CONTROL (v2.0)" -ForegroundColor Cyan
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host "  Showcasing: AI Synthesis, IPFS Archiving, and Multi-Lock Signing" -ForegroundColor White
+Write-Host "  Showcasing: AI Synthesis, Multi-Lock Signing, and CRE v3.0" -ForegroundColor White
 Write-Host "================================================================" -ForegroundColor Cyan
 
 # Function to run a single test scenario
 function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
-    Write-Host "`n--------------------------------------------------------------" -ForegroundColor $Color
-    Write-Host "[SCENARIO] $ScenarioName" -ForegroundColor $Color
-    Write-Host "--------------------------------------------------------------" -ForegroundColor $Color
+    Write-Host "`n┌─────────────────────────────────────────────────────────────┐" -ForegroundColor $Color
+    Write-Host "│ [SCENARIO] $ScenarioName" -ForegroundColor $Color
+    Write-Host "└─────────────────────────────────────────────────────────────┘" -ForegroundColor $Color
     
     $cmd = "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload $PayloadFile"
     
@@ -47,85 +47,100 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
                 return
             }
 
-            # 3. State Machine for AI Audit (The "Big Story")
+            # 3. Handle Modern Tags [TAG]
+            if ($message -match '^\[CRE\]\s+(.*)$') {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
+                Write-Host "[CRE] " -NoNewline -ForegroundColor White
+                Write-Host "$($Matches[1])" -ForegroundColor Cyan
+                return
+            }
+            if ($message -match '^\[SIGNAL\]\s+(.*)$') {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
+                Write-Host "[SIGNAL] " -NoNewline -ForegroundColor DarkGray
+                $content = $Matches[1]
+                
+                # Check for LIVE/MOCKED status
+                if ($content -match '\[LIVE\]') { 
+                    Write-Host "[LIVE] " -NoNewline -ForegroundColor Green 
+                    $rest = $content -replace '\[LIVE\]\s+', ''
+                } elseif ($content -match '\[MOCKED\]') {
+                    Write-Host "[MOCKED] " -NoNewline -ForegroundColor Yellow 
+                    $rest = $content -replace '\[MOCKED\]\s+', ''
+                } else {
+                    $rest = $content
+                }
+
+                if ($rest -match 'DONE|OK|Success|SYNC') { Write-Host "$rest" -ForegroundColor Green }
+                elseif ($rest -match 'ERR|FAIL|Interruption') { Write-Host "$rest" -ForegroundColor Red }
+                elseif ($rest -match 'WARN|Fallback|Auth Denied') { Write-Host "$rest" -ForegroundColor Yellow }
+                else { Write-Host "$rest" -ForegroundColor Gray }
+                return
+            }
+            if ($message -match '^\[AI\]\s+(.*)$') {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
+                Write-Host "[AI] " -NoNewline -ForegroundColor Yellow
+                $content = $Matches[1]
+                if ($content -match 'RESULT|VERDICT|REASONING') { Write-Host "$content" -ForegroundColor Yellow }
+                elseif ($content -match 'DONE|Success') { Write-Host "$content" -ForegroundColor Green }
+                elseif ($content -match 'ERR|FAIL') { Write-Host "$content" -ForegroundColor Red }
+                else { Write-Host "$content" -ForegroundColor White }
+                return
+            }
+            if ($message -match '^\[SIGNER\]\s+(.*)$') {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
+                Write-Host "[SIGNER] " -NoNewline -ForegroundColor Magenta
+                $content = $Matches[1]
+                if ($content -match 'SIGNED|Generated') { Write-Host "$content" -ForegroundColor Green }
+                else { Write-Host "$content" -ForegroundColor White }
+                return
+            }
+
+            # 4. State Machine for AI Audit (Legacy support/fallback)
             if ($message -match "AI RISK ANALYSIS \(Logic & Reasoning\)") {
                 $inAuditBody = $true
-                $inAnalysisSection = $false # Reset for new section
+                $inAnalysisSection = $false
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Cyan
                 return
             }
             
-            # End audit when next section starts
-            if ($inAuditBody -and ($message -match "COMPLIANCE ARCHIVE" -or $message -match "Verdict:")) {
+            if ($inAuditBody -and ($message -match "Verdict:")) {
                 $inAuditBody = $false
                 $inAnalysisSection = $false
-                # Fall through to standard handling for this line
             }
 
             if ($inAuditBody) {
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                
                 if ($message -match "\[ANALYSIS\]:") {
                      $inAnalysisSection = $true
                      Write-Host "$message" -ForegroundColor Yellow
                 } elseif ($inAnalysisSection) {
-                     # Continued lines of analysis should stay yellow
                      Write-Host "$message" -ForegroundColor Yellow
                 } else {
-                     # ENTITY, SECURITY, etc. should be white
                      Write-Host "$message" -ForegroundColor White
                 }
                 return
             }
 
-            # 4. Mission Control Highlighting
+            # 5. Fallback Highlighting
             if ($message -match "Verdict:") {
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                
-                # Highlight keyword segments - Simulating inline bolding by splitting string is hard in PS without strict control
-                # We will color the whole line if it contains the verdict, but maybe try to color just the keyword?
-                # Powershell Write-Host adds newline by default.
-                
-                if ($message -match "EXECUTE") {
-                     Write-Host "$message" -ForegroundColor Green
-                } elseif ($message -match "REJECT") {
-                     Write-Host "$message" -ForegroundColor Red
-                } else {
-                     Write-Host "$message" -ForegroundColor Cyan
-                }
+                if ($message -match "EXECUTE|APPROVED") { Write-Host "$message" -ForegroundColor Green }
+                elseif ($message -match "REJECT|RISK_DETECTED") { Write-Host "$message" -ForegroundColor Red }
+                else { Write-Host "$message" -ForegroundColor Cyan }
             }
-            elseif ($message -match "INPUT RECEIVED|PROTECTION ACTIVE|Chainlink Runtime Environment") {
+            elseif ($message -match '━━━━━━|━━━') {
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Cyan
             }
-            elseif ($message -match "DATA ACQUISITION|AI SYNTHESIS|COMPLIANCE ARCHIVE|Pinned|CRYPTOGRAPHIC QUAD-LOCK") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                Write-Host "$message" -ForegroundColor Cyan
-            }
-            elseif ($message -match "Fetch|Send|Ping") {
+            elseif ($message -match "Loading|Initializing|Starting") {
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Gray
             }
-            elseif ($message -match "Resolved|Scan|Audit Pinned|Success|Clean Token") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                Write-Host "$message" -ForegroundColor Green
-            }
-            elseif ($message -match "Fallback|Warning|Error|ALERT|HONEYPOT") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                Write-Host "$message" -ForegroundColor Red
-            }
-            elseif ($message -match "Signing Payload|DON SIGNATURE|Hash|Salt|Price|User|Tax:|Status:|Analysis Context") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                Write-Host "$message" -ForegroundColor White
-            }
-            elseif ($message -match "Workflow Simulation Result:") {
-                 # Swallow
-                 return
-            }
             else {
                 if ($metadata) { Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray }
-                Write-Host "$message"
+                if ($message -match '└─|├─') { Write-Host "$message" -ForegroundColor Gray }
+                else { Write-Host "$message" }
             }
         }
 }
@@ -137,6 +152,6 @@ Run-Test "Economic Fail (Price Manipulation)" "/app/tests/payloads/test-payload-
 Run-Test "Combo Fail (Amber Flags)" "/app/tests/payloads/test-payload-combo.json" "REJECT - Compounding Risks" "Yellow"
 
 Write-Host "`n================================================================" -ForegroundColor Cyan
-Write-Host "   ANALYSIS SUITE COMPLETE" -ForegroundColor Cyan
-Write-Host "   Mission Control Status: VERIFIED" -ForegroundColor White
+Write-Host "   AUDIT SUITE EXECUTION COMPLETE" -ForegroundColor Cyan
+Write-Host "   Mission Control Status: [OPERATIONAL]" -ForegroundColor Green
 Write-Host "================================================================" -ForegroundColor Cyan

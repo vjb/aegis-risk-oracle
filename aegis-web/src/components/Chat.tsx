@@ -20,7 +20,7 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Activity, Lock, Zap, ArrowRight, Loader2, Check, Brain, Search, AlertTriangle, FileText } from 'lucide-react';
+import { Shield, Activity, Lock, Zap, ArrowRight, Loader2, Check, Brain, Search, AlertTriangle, FileText, Twitter, ShieldAlert } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/moving-border";
@@ -37,6 +37,65 @@ interface Message {
 interface ChatProps {
     onIntent?: (intent: string) => void;
 }
+
+const VerdictHeader = ({ type }: { type: 'APPROVE' | 'DENIED' | 'REJECT' }) => {
+    const isApprove = type === 'APPROVE';
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+                "mb-4 p-3 rounded-xl flex items-center gap-3 border shadow-lg overflow-hidden relative group",
+                isApprove
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-emerald-500/5"
+                    : "bg-red-500/10 border-red-500/30 text-red-500 shadow-red-500/5"
+            )}
+        >
+            {/* Background Glow */}
+            <div className={cn(
+                "absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500",
+                isApprove ? "bg-gradient-to-r from-emerald-500/20 to-transparent" : "bg-gradient-to-r from-red-500/20 to-transparent"
+            )} />
+
+            <div className={cn(
+                "p-2 rounded-lg relative z-10",
+                isApprove ? "bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+            )}>
+                {isApprove ? <Shield className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5 flex-shrink-0" />}
+            </div>
+            <div className="relative z-10 flex-1">
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-60 font-bold">
+                    Aegis Protocol Verdict
+                </div>
+                <div className="text-sm font-black tracking-tight uppercase">
+                    {isApprove ? "Transaction Approved" : "Threat Detected / Reject"}
+                </div>
+            </div>
+
+            <div className="relative z-10 ml-auto flex flex-col items-end gap-1">
+                {isApprove ? (
+                    <motion.div
+                        animate={{ opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 text-[8px] font-bold border border-emerald-500/30"
+                    >
+                        <div className="w-1 h-1 bg-emerald-400 rounded-full shadow-[0_0_5px_rgba(52,211,153,1)]" />
+                        SECURE
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/20 text-[8px] font-bold border border-red-500/30"
+                    >
+                        <AlertTriangle className="w-2.5 h-2.5" />
+                        CRITICAL
+                    </motion.div>
+                )}
+            </div>
+        </motion.div>
+    );
+};
 
 type ScanningStatus = 'idle' | 'detecting' | 'scanning' | 'analyzing' | 'complete';
 
@@ -79,7 +138,7 @@ export default function Chat({ onIntent }: ChatProps) {
         // Set focus immediately after clear to prevent loss
         inputRef.current?.focus();
 
-        const isScamToken = userMsg.toLowerCase().includes('scam-token');
+        const isScamToken = userMsg.toLowerCase().includes('scam');
         const isRiskQuery = isScamToken ||
             userMsg.toLowerCase().includes('swap') ||
             userMsg.toLowerCase().includes('risk') ||
@@ -123,7 +182,7 @@ export default function Chat({ onIntent }: ChatProps) {
                 setMessages(prev => [...prev, {
                     id: Date.now().toString(),
                     role: 'agent',
-                    content: `❌ [AEGIS_DENIED] Critical security protocol triggered.\n\nAsset: SCAM-TOKEN\nVerdict: REJECT\nACTIVE RISK FLAGS (Bitmask: 352):\n\n  [!] IMPERSONATION DETECTED (Flag 32)\n      "Token name spoofs major brand 'Coinbase'."\n\n  [!] WASH TRADING (Flag 64)\n      "Volume is 125x higher than available Liquidity."\n\n  [!] PHISHING SCAM (Flag 256)\n      "URL contains malicious keyword 'claim-rewards'."\n\nSecurity Score: 0/100 (Critical)`,
+                    content: `[AEGIS_DENIED] Critical security protocol triggered.\n\nAsset: SCAM-DETECTED\nVerdict: REJECT\nACTIVE RISK FLAGS (Bitmask: 0x24):\n\n  [!] MALICIOUS PATTERN MATCHED\n      "Contract signature matches known scam template."\n\n  [!] SUSPICIOUS METADATA\n      "Token name contains high-risk keywords."\n\n  [!] DARK MEMPOOL ACTIVITY\n      "Detected pending sell-pressure from dev wallet."\n\nSecurity Score: 0/100 (Critical)`,
                     isVerdict: true
                 }]);
                 setIsLoading(false);
@@ -246,21 +305,47 @@ export default function Chat({ onIntent }: ChatProps) {
                                                 )} />
                                             )}
 
+                                            {/* Special Formatting for Verdict Headers */}
+                                            {m.role === 'agent' && (
+                                                <>
+                                                    {m.content.includes("[AEGIS_APPROVE]") && <VerdictHeader type="APPROVE" />}
+                                                    {(m.content.includes("[AEGIS_DENIED]") || m.content.includes("[AEGIS_REJECT]")) && <VerdictHeader type="DENIED" />}
+                                                </>
+                                            )}
+
                                             {/* Special Formatting for Anomaly Warning (Flag 512) */}
                                             {m.content.includes("Flag 512") || m.content.includes("ANOMALY") ? (
                                                 <div className="flex flex-col gap-2">
                                                     <div className="flex items-center gap-2 text-amber-500 font-bold uppercase tracking-wider text-sm">
                                                         <AlertTriangle className="w-4 h-4" /> Manual Review Suggested
                                                     </div>
-                                                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-amber-100/90">{m.content}</p>
+                                                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-amber-100/90">
+                                                        {m.content.replace(/\[AEGIS_(APPROVE|DENIED|REJECT)\]\s*/g, '')}
+                                                    </p>
                                                 </div>
                                             ) : (
-                                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>
+                                                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                                    {m.content.replace(/\[AEGIS_(APPROVE|DENIED|REJECT)\]\s*/g, '')}
+                                                </p>
                                             )}
 
                                             {m.isVerdict && (
-                                                <div className="mt-2 flex items-center gap-2 text-[10px] text-cyan-400/70 font-mono uppercase tracking-tighter">
-                                                    <Lock className="w-3 h-3" /> Signed by Aegis DON v1.0
+                                                <div className="mt-2 flex items-center justify-between gap-4">
+                                                    <div className="flex items-center gap-2 text-[10px] text-cyan-400/70 font-mono uppercase tracking-tighter">
+                                                        <Lock className="w-3 h-3" /> Signed by Aegis DON v1.0
+                                                    </div>
+                                                    {(m.content.includes("REJECT") || m.content.includes("DENIED")) && (
+                                                        <button
+                                                            onClick={() => {
+                                                                const tweetText = "🚨 Aegis Risk Oracle just blocked a potential scam! 🛡️ Always verify before you swap. #AegisProtocol #Chainlink #DEFI @Chainlink";
+                                                                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
+                                                            }}
+                                                            className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#1DA1F2]/20 hover:bg-[#1DA1F2]/30 text-[#1DA1F2] text-[10px] font-bold transition-colors border border-[#1DA1F2]/30"
+                                                        >
+                                                            <Twitter className="w-3 h-3" />
+                                                            WARN OTHERS
+                                                        </button>
+                                                    )}
                                                 </div>
                                             )}
                                         </>

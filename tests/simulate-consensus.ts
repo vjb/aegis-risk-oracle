@@ -79,7 +79,7 @@ async function main() {
                 salt: resultObj.salt
             });
         } catch (e) {
-            console.error(`❌ Node ${i + 1} Crashing:`, e.message);
+            console.error(`❌ Node ${i + 1} Crashing:`, (e as Error).message);
             process.exit(1);
         }
     }
