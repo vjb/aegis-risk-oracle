@@ -1,4 +1,11 @@
+import { checkOpenAI } from "./test-openai";
+import { checkCoinGecko } from "./test-coingecko";
+import { checkGoPlus } from "./test-goplus";
+
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY;
+const GOPLUS_APP_KEY = process.env.GOPLUS_APP_KEY;
+const GOPLUS_APP_SECRET = process.env.GOPLUS_APP_SECRET;
 
 // Test configuration
 const CONFIG = {
@@ -12,147 +19,15 @@ const CONFIG = {
     goplus: {
         token: "0x4200000000000000000000000000000000000006",
         chain: "8453"
-    },
-    qrng: {
-        length: 16
     }
 };
 
+// Unified result type compatible with all
 interface TestResult {
     name: string;
     status: "✅ PASS" | "❌ FAIL" | "⚠️ SKIP";
     detail: string;
     latency: number;
-}
-
-const results: TestResult[] = [];
-
-async function testOpenAI(): Promise<TestResult> {
-    const start = Date.now();
-    const name = "OpenAI GPT-4o-mini";
-
-    if (!OPENAI_API_KEY) {
-        return { name, status: "⚠️ SKIP", detail: "OPENAI_API_KEY not set", latency: 0 };
-    }
-
-    try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: CONFIG.openai.model,
-                messages: [{ role: "user", content: CONFIG.openai.prompt }],
-                max_tokens: 10
-            })
-        });
-
-        if (!response.ok) {
-            return { name, status: "❌ FAIL", detail: `HTTP ${response.status}`, latency: Date.now() - start };
-        }
-
-        const data = await response.json() as any;
-        return {
-            name,
-            status: "✅ PASS",
-            detail: `Model: ${data.model}`,
-            latency: Date.now() - start
-        };
-    } catch (error: any) {
-        return { name, status: "❌ FAIL", detail: error.message, latency: Date.now() - start };
-    }
-}
-
-async function testCoinGecko(): Promise<TestResult> {
-    const start = Date.now();
-    const name = "CoinGecko Price";
-
-    try {
-        const response = await fetch(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${CONFIG.coingecko.coin}&vs_currencies=usd`
-        );
-
-        if (!response.ok) {
-            return { name, status: "❌ FAIL", detail: `HTTP ${response.status}`, latency: Date.now() - start };
-        }
-
-        const data = await response.json() as any;
-        const price = data[CONFIG.coingecko.coin]?.usd;
-
-        return {
-            name,
-            status: "✅ PASS",
-            detail: `ETH: $${price?.toFixed(2)}`,
-            latency: Date.now() - start
-        };
-    } catch (error: any) {
-        return { name, status: "❌ FAIL", detail: error.message, latency: Date.now() - start };
-    }
-}
-
-async function testGoPlus(): Promise<TestResult> {
-    const start = Date.now();
-    const name = "GoPlus Security";
-
-    try {
-        const response = await fetch(
-            `https://api.gopluslabs.io/api/v1/token_security/${CONFIG.goplus.chain}?contract_addresses=${CONFIG.goplus.token}`
-        );
-
-        if (!response.ok) {
-            return { name, status: "❌ FAIL", detail: `HTTP ${response.status}`, latency: Date.now() - start };
-        }
-
-        const data = await response.json() as any;
-        const tokenData = data.result?.[CONFIG.goplus.token.toLowerCase()];
-
-        if (tokenData) {
-            const honeypot = tokenData.is_honeypot === "1" ? "⚠️ Yes" : "No";
-            return {
-                name,
-                status: "✅ PASS",
-                detail: `Honeypot: ${honeypot}`,
-                latency: Date.now() - start
-            };
-        } else {
-            return { name, status: "⚠️ SKIP", detail: "No token data", latency: Date.now() - start };
-        }
-    } catch (error: any) {
-        return { name, status: "❌ FAIL", detail: error.message, latency: Date.now() - start };
-    }
-}
-
-async function testQRNG(): Promise<TestResult> {
-    const start = Date.now();
-    const name = "ANU QRNG";
-
-    try {
-        const response = await fetch(
-            `https://qrng.anu.edu.au/API/jsonI.php?length=${CONFIG.qrng.length}&type=hex16&size=1`
-        );
-
-        if (!response.ok) {
-            return { name, status: "❌ FAIL", detail: `HTTP ${response.status}`, latency: Date.now() - start };
-        }
-
-        const data = await response.json() as any;
-
-        if (data.success) {
-            const hex = data.data?.[0]?.substring(0, 16) + "...";
-            return {
-                name,
-                status: "✅ PASS",
-                detail: `Hex: ${hex}`,
-                latency: Date.now() - start
-            };
-        } else {
-            return { name, status: "❌ FAIL", detail: "API returned false", latency: Date.now() - start };
-        }
-    } catch (error: any) {
-        return { name, status: "⚠️ SKIP", detail: "Rate limited or unavailable", latency: Date.now() - start };
-    }
 }
 
 async function runAllTests(): Promise<void> {
@@ -161,16 +36,20 @@ async function runAllTests(): Promise<void> {
     console.log("════════════════════════════════════════════════════════════════\n");
 
     console.log("Testing all external APIs used by Aegis workflow...\n");
+    console.log("(Detailed logs hidden, use standalone scripts for verbose output)\n");
 
     // Run all tests in parallel
-    const [openai, coingecko, goplus, qrng] = await Promise.all([
-        testOpenAI(),
-        testCoinGecko(),
-        testGoPlus(),
-        testQRNG()
+    const [openaiRes, coingeckoRes, goplusRes] = await Promise.all([
+        checkOpenAI(OPENAI_API_KEY, CONFIG.openai.model, CONFIG.openai.prompt, false),
+        checkCoinGecko(CONFIG.coingecko.coin, COINGECKO_API_KEY, false),
+        checkGoPlus(CONFIG.goplus.token, CONFIG.goplus.chain, GOPLUS_APP_KEY, GOPLUS_APP_SECRET, false)
     ]);
 
-    results.push(openai, coingecko, goplus, qrng);
+    const results: TestResult[] = [
+        { name: "OpenAI GPT-4o-mini", ...openaiRes },
+        { name: "CoinGecko Price", ...coingeckoRes },
+        { name: "GoPlus Security", ...goplusRes }
+    ];
 
     // Display results
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");

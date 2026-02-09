@@ -35,9 +35,9 @@ Visualizes the AI's decision-making process for different risk scenarios:
 
 ### [`simulate-consensus.ts`](simulate-consensus.ts)
 **Determinism Validator.**
-- Spawns **5 independent Docker containers** running the same workflow.
+- Spawns **3 independent Docker containers** running the same workflow.
 - Injects slight timing variations to simulate network latency.
-- **Pass Condition**: All 5 nodes must produce the **exact same 32-byte hash** and signature.
+- **Pass Condition**: All 3 nodes must produce the **exact same 32-byte hash** and signature.
 
 ---
 

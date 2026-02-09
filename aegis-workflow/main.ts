@@ -124,8 +124,14 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     const cgUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${requestData.coingeckoId || 'ethereum'}&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true`;
     const gpUrl = `https://api.gopluslabs.io/api/v1/token_security/${requestData.chainId ?? "1"}?contract_addresses=${requestData.tokenAddress}`;
 
+    // Auth Headers for CoinGecko
+    const cgHeaders: Record<string, string> = {};
+    if (runtime.config.coingeckoApiKey) {
+        cgHeaders["x-cg-demo-api-key"] = runtime.config.coingeckoApiKey;
+    }
+
     const [cgRes, gpRes] = await Promise.allSettled([
-        httpClient.sendRequest(runtime as any, { url: cgUrl, method: "GET" }).result(),
+        httpClient.sendRequest(runtime as any, { url: cgUrl, method: "GET", headers: cgHeaders }).result(),
         httpClient.sendRequest(runtime as any, { url: gpUrl, method: "GET", headers: gpHeaders }).result()
     ]);
 

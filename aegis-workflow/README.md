@@ -27,7 +27,7 @@ We use a binary flag system to represent complex risks as a single `uint256`:
 - `512` (1000000000): **AI Anomaly** (Ambiguity/Gray Zone)
 
 ## 🧪 Testing
-We use the `simulate-consensus.ts` script to spawn 5 local Docker containers representing Chainlink Nodes. They all execute this workflow in parallel. We compare their outputs bit-by-bit to ensure 100% agreement.
+We use the `simulate-consensus.ts` script to spawn 3 local Docker containers representing Chainlink Nodes. They all execute this workflow in parallel. We compare their outputs bit-by-bit to ensure 100% agreement.
 
 ```bash
 # Run the consensus simulation
