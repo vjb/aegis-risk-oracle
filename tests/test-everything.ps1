@@ -72,7 +72,7 @@ if ($LASTEXITCODE -ne 0) {
 # PHASE 2: CONNECTIVITY (APIs)
 # ════════════════════════════════════════════════════════════════════════════════
 Write-Header "📡 Phase 2: Connectivity Suite"
-Run-TestStep "API Connectivity (CoinGecko/GoPlus/QRNG)" "tests/test-all-apis.ts"
+Run-TestStep "API Connectivity (CoinGecko/GoPlus/QRNG)" "test-all-apis.ts"
 Run-TestStep "AI Risk Logic (CRE Simulation)" "test-aegis.ps1"
 
 # ════════════════════════════════════════════════════════════════════════════════

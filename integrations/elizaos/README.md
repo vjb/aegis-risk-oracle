@@ -1,47 +1,60 @@
-# 🔌 ElizaOS Integration
+# 🧩 Aegis ElizaOS Plugin
 
-**Draft plugin** for integrating Aegis Risk Oracle into ElizaOS agents.
+> **"The Bridge Between Worlds."**
 
-## Purpose
+This directory contains the custom **ElizaOS Plugin** developed for the Aegis Risk Oracle. It seamlessly integrates the high-assurance Chainlink CRE workflow with the conversational capabilities of the agent.
 
-This plugin allows any ElizaOS agent to use Aegis as a security guardrail before executing trades.
+---
 
-## Files
-| File | Purpose |
-| :--- | :--- |
-| `aegis-plugin.ts` | Intercepts `SWAP`/`BUY` intents, calls Aegis Oracle |
-| `aegis-provider.ts` | Verifies DON signatures locally |
+## 🛠️ Components
 
-## 🔌 Plugin Architecture
+### 1. `aegis-plugin.ts`
+The core plugin definition. It registers:
+- **Actions**: `CHECK_RISK`, `SCAN_TOKEN`, `ANALYZE_MARKET`
+- **Providers**: Fetches real-time context from the CRE if available.
+- **Evaluators**: Validates the output of the CRE workflow against the agent's internal logic.
 
-This plugin demonstrates the **Automated Risk Monitoring** integration path for any ElizaOS agent.
+### 2. `actions/checkRisk.ts`
+The specific handler for risk assessment requests.
+- **Trigger**: "Is this token safe?", "Audit 0x...", "Scan WETH"
+- **Process**:
+  1.  Extracts token address and chain ID from the prompt.
+  2.  Validates the input format.
+  3.  Calls the CRE API endpoint (or simulates it locally).
+  4.  Returns the verdict to the conversation loop.
 
-**Key Features for Judges:**
-1.  **Universal Adapter:** Can be added to any ElizaOS character to give them "Aegis Protection".
-2.  **Intent Parsing:** Automatically detects `SWAP` or `BUY` intents and pauses execution to request a CRE update.
-3.  **Verifiable Bridge:** Passes the signed CRE verdict back to the agent context for decision making.
+---
 
-## Usage Example
+## 🔗 Integration Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent as Eliza Core
+    participant Plugin as Aegis Plugin
+    participant CRE as Chainlink Runtime
+
+    User->>Agent: "Check if 0x123... is safe"
+    Agent->>Plugin: Match Action: CHECK_RISK
+    Plugin->>CRE: POST /workflow/trigger { token: "0x123..." }
+    CRE-->>Plugin: Return Verdict (Risk Score: 8/10)
+    Plugin-->>Agent: Format Response ("⚠️ High Risk Detected!")
+    Agent-->>User: "This token is unsafe. Proceed with caution."
+```
+
+---
+
+## 📦 Installation
+
+To add this plugin to your own ElizaOS agent:
+
+1.  Copy this folder to `packages/plugin-aegis`.
+2.  Add `"@elizaos/plugin-aegis": "workspace:*"` to your agent's `package.json`.
+3.  Register it in `agent/src/index.ts`:
 
 ```typescript
-import { aegisPlugin } from './aegis-plugin';
+import { aegisPlugin } from "@elizaos/plugin-aegis";
 
-// Register with ElizaOS
-agent.registerPlugin(aegisPlugin);
-
-// Now all swap intents are automatically validated
-// Trades are blocked if riskScore >= 7 or decision === "REJECT"
+// ... inside your runtime setup
+runtime.registerPlugin(aegisPlugin);
 ```
-
-## Integration Flow
-
-```
-Agent Intent → aegis-plugin → Aegis Oracle → Signed Verdict
-                                                    ↓
-                              APPROVE → Execute Transaction
-                              REJECT  → Block & Log Reason
-```
-
-## The "Safe Agent" Standard
-
-`aegis-provider.ts` implements local signature verification, allowing agents to trustlessly confirm that verdicts came from the authorized Chainlink DON.

@@ -5,6 +5,8 @@
 
 Aegis is a **DeFi Safety Agent** powered by a **Decentralized Oracle Network (DON)**. It analyzes token safety using AI Forensics and Consensus Validation before allowing users to interact with high-risk contracts.
 
+---
+
 ## 🚀 Key Features
 
 ### 1. 🧠 Deterministic "Split-Brain" Oracle
@@ -33,6 +35,19 @@ Every decision is locked with a cryptographic proof:
 
 ---
 
+## 🔗 Chainlink Integrations
+
+This project leverages the full Chainlink stack to ensure trust-minimized execution:
+
+| Component | Usage in Aegis |
+| :--- | :--- |
+| **[Chainlink Runtime Environment (CRE)](aegis-workflow/main.ts)** | The core execution layer where the specific workflow logic (`aegis-workflow`) runs. |
+| **[Chainlink Functions](aegis-workflow/main.ts)** | Fetches external data from CoinGecko and GoPlus APIs securely. |
+| **[Decentralized Oracle Network (DON)](tests/simulate-consensus.ts)** | Validates the AI's analysis and signs the final verdict using `secp256k1` signatures. |
+| **[Chainlink VRF](aegis-workflow/utils.ts)** | (Simulated) Provides randomness for salt generation to prevent replay attacks. |
+
+---
+
 ## 🛠️ Architecture
 
 ```mermaid
@@ -57,38 +72,57 @@ sequenceDiagram
     Vault->>Vault: 6. Verify Signer & Data Integrity -> SWAP
 ```
 
+---
+
 ## 📦 Repository Structure
 
 - **`aegis-workflow/`**: The Chainlink CRE code. Contains the **Deterministic AI Logic**.
 - **`contracts/`**: Solidity Smart Contracts (`AegisVault.sol`) with signature verification.
 - **`aegis-web/`**: The "Mission Control" Dashboard (Next.js) featuring the **Tri-Vector UI**.
 - **`tests/`**: Comprehensive Test Suite (`simulate-consensus.ts`, `test-aegis.ps1`).
+- **`docs/`**: Project documentation, whitepapers, and hackathon resources.
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Getting Started
 
 ### Prerequisites
-- Node.js v20+
-- Docker (Required for Local CRE Runtime & Consensus Simulation)
+- **Node.js** v20+
+- **Docker** (Required for Local CRE Runtime & Consensus Simulation)
 
 ### 1. Installation
+Run the following commands to install dependencies for all components:
 ```bash
 npm install
 cd aegis-workflow && npm install
 cd ../aegis-web && npm install
+cd ../eliza && npm install
 ```
 
-### 2. The "Hollywood" Demo (Judges' Choice)
-Run the full Mission Control suite to see Aegis in action:
-```powershell
-.\test-aegis.ps1
-```
-
-### 3. Verification (Consensus Test)
-Run the 3-node consensus simulator to prove deterministic behavior:
+### 2. Start the Docker Environment
+Ensure Docker is running to support the local CRE simulation:
 ```bash
-npm run test:consensus
+docker-compose up -d
+```
+
+### 3. Launch the Mission Control Center
+Start the full stack (Frontend + Backend + AI Agent) with one command:
+```powershell
+.\start-aegis.ps1
+```
+- **Frontend**: http://localhost:3005
+- **Backend API**: http://localhost:3011
+
+### 4. Run the "Hollywood" Demo (Judges' Choice)
+Experience the full capabilities of Aegis with our scripted demo suite:
+```powershell
+.\tests\test-aegis.ps1
+```
+
+### 5. Verify the System
+Run the comprehensive verification suite to test all APIs, cryptography, and logic:
+```powershell
+.\tests\test-everything.ps1
 ```
 
 ---
@@ -108,4 +142,3 @@ The Aegis Risk Oracle runs inside the **Chainlink Runtime Environment (CRE)**, w
 ---
 
 *Built with ❤️ by the Aegis Team for the Chainlink Constellation Hackathon.*
-
