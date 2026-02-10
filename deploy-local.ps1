@@ -29,15 +29,34 @@ $VRF_COORDINATOR = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # Using DON key 
 $KEY_HASH = "0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15"
 $SUB_ID = "1"
 
+# Deploy Mock VRF Coordinator
+Write-Host "`n🎲 Deploying MockVRFCoordinator..." -ForegroundColor Yellow
+$forgePath = "$env:USERPROFILE\.foundry\bin\forge.exe"
+$env:FOUNDRY_DISABLE_NIGHTLY_WARNING = "1"
+
+# We must capture the output to find the address
+$mockVrfOutput = & $forgePath create "contracts/MockVRFCoordinator.sol:MockVRFCoordinator" --broadcast --rpc-url http://localhost:8545 --private-key $DON_PRIVATE_KEY 2>&1
+
+# Regex match the address
+$mockVrfAddress = $null
+if ($mockVrfOutput -match "Deployed to: (0x[a-fA-F0-9]{40})") {
+    $mockVrfAddress = $matches[1]
+    Write-Host "   ✅ MockVRF deployed to: $mockVrfAddress" -ForegroundColor Green
+} else {
+    Write-Host "   ❌ Failed to deploy MockVRF" -ForegroundColor Red
+    Write-Host "$mockVrfOutput"
+    exit 1
+}
+
 # Deploy AegisVault using forge
 Write-Host "`n🚀 Deploying AegisVault.sol (with VRF config)..." -ForegroundColor Yellow
 
-$forgePath = "$env:USERPROFILE\.foundry\bin\forge.exe"
-$env:FOUNDRY_DISABLE_NIGHTLY_WARNING = "1"
-& $forgePath create "contracts/AegisVault.sol:AegisVault" --broadcast --rpc-url http://localhost:8545 --private-key $DON_PRIVATE_KEY --constructor-args $DON_PUBLIC_KEY $VRF_COORDINATOR $KEY_HASH $SUB_ID
+# Constructor Args: _router, _vrfCoordinator, _keyHash, _subId
+& $forgePath create "contracts/AegisVault.sol:AegisVault" --broadcast --rpc-url http://localhost:8545 --private-key $DON_PRIVATE_KEY --constructor-args $DON_PUBLIC_KEY $mockVrfAddress $KEY_HASH $SUB_ID
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "`n✅ AegisVault deployed successfully!" -ForegroundColor Green
+    Write-Host "   Mock VRF: $mockVrfAddress" -ForegroundColor DarkGray
 } else {
     Write-Host "`n❌ Deployment failed. Check the output above." -ForegroundColor Red
 }

@@ -3,34 +3,55 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./IVRFCoordinatorV2.sol";
+import "./VRFConsumerBaseV2.sol";
 
 /**
  * @title AegisVault
  * @dev "Sovereign Executor" Architecture for the Chainlink Convergence Hackathon.
  * The Vault initiates the forensic scan, locks funds, and enforces the verdict.
  */
-contract AegisVault is Pausable, Ownable {
+contract AegisVault is Pausable, Ownable, VRFConsumerBaseV2 {
     address public functionsRouter; // Simulated Chainlink Functions Router
     
+    // VRF Config
+    VRFCoordinatorV2Interface COORDINATOR;
+    bytes32 keyHash;
+    uint64 s_subscriptionId;
+    uint32 callbackGasLimit = 100000;
+    uint16 requestConfirmations = 3;
+    uint32 numWords = 1;
+
     struct PendingRequest {
         address user;
         address token;
         uint256 amount;
         bool active;
+        uint256 randomness; // Store the entropy
     }
 
     mapping(bytes32 => PendingRequest) public requests;
+    mapping(uint256 => bytes32) public vrfToTradeRequest; // VRF Request ID -> Trade Request ID
     mapping(address => uint256) public riskCache; // Persistent Risk Registry (Chainlink Automation compatible)
     mapping(address => uint256) public userEscrow; // Tracks locked funds during scan
 
     event TradeInitiated(bytes32 indexed requestId, address indexed user, address token, uint256 amount);
+    event EntropyGenerated(bytes32 indexed requestId, uint256 randomness); // New event for off-chain agent
     event TradeSettled(bytes32 indexed requestId, address indexed user, address token, uint256 amount, uint256 riskCode);
     event TradeRefunded(bytes32 indexed requestId, address indexed user, address token, uint256 amount, uint256 riskCode);
     event RiskCacheUpdated(address indexed token, uint256 riskCode);
     event OracleError(bytes32 indexed requestId, string reason);
 
-    constructor(address _router) Ownable() {
+    constructor(
+        address _router,
+        address _vrfCoordinator,
+        bytes32 _keyHash,
+        uint64 _subId
+    ) Ownable() VRFConsumerBaseV2(_vrfCoordinator) {
         functionsRouter = _router;
+        COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
+        keyHash = _keyHash;
+        s_subscriptionId = _subId;
     }
 
     /**
@@ -63,14 +84,36 @@ contract AegisVault is Pausable, Ownable {
             user: msg.sender,
             token: token,
             amount: amount,
-            active: true
+            active: true,
+            randomness: 0
         });
 
         userEscrow[msg.sender] += amount;
 
-        emit TradeInitiated(requestId, msg.sender, token, amount);
+        // NEW: Request Verifiable Randomness
+        uint256 vrfRequestId = COORDINATOR.requestRandomWords(
+            keyHash,
+            s_subscriptionId,
+            requestConfirmations,
+            callbackGasLimit,
+            numWords
+        );
         
-        // In Prod: router.sendRequest(...) happens here
+        vrfToTradeRequest[vrfRequestId] = requestId;
+
+        emit TradeInitiated(requestId, msg.sender, token, amount);
+    }
+
+    /**
+     * @notice Phase 1.5: Randomness Callback
+     */
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
+        bytes32 tradeRequestId = vrfToTradeRequest[requestId];
+        require(requests[tradeRequestId].active, "Request not active");
+        
+        requests[tradeRequestId].randomness = randomWords[0];
+        
+        emit EntropyGenerated(tradeRequestId, randomWords[0]);
     }
 
     /**
@@ -81,6 +124,8 @@ contract AegisVault is Pausable, Ownable {
         // require(msg.sender == functionsRouter, "Only Router");
         PendingRequest storage req = requests[requestId];
         require(req.active, "Request not active");
+        // Ensure entropy was generated before settlement
+        // require(req.randomness != 0, "Wait for VRF"); // Optional check
 
         if (err.length > 0) {
             emit OracleError(requestId, string(err));

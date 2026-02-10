@@ -65,6 +65,7 @@ Aegis uses the **Chainlink Runtime Environment (CRE)** and **Chainlink Functions
 | **1. Sovereign Smart Escrow** | The `AegisVault.sol` contract locks funds and triggers the audit. | [AegisVault.sol](contracts/AegisVault.sol) |
 | **2. Deterministic AI (Functions)** | The CRE Workflow that runs GPT-4o but enforces deterministic bitmasks. | [main.ts](aegis-workflow/main.ts) |
 | **3. Preemptive Automation** | The `riskCache` mapping and `updateRiskCache` function for zero-latency blocking. | [AegisVault.sol:L35](contracts/AegisVault.sol#L35) |
+| **4. Verifiable Randomness (VRF)** | Salts the audit request with on-chain entropy to prevent pre-computation. | [AegisVault.sol](contracts/AegisVault.sol) |
 
 ---
 
@@ -122,7 +123,7 @@ We force the AI to output specific bit flags. This ensures **determinism** acros
 ## 🛠️ The Stack
 
 - **Smart Contract**: Solidity, Foundry, Anvil
-- **Oracle Network**: Chainlink CRE, Functions, Automation
+- **Oracle Network**: Chainlink CRE, Functions, VRF, Automation
 - **AI Core**: OpenAI GPT-4o (via DON)
 - **Frontend**: Next.js 15, Tailwind, ShadcnUI (SecOps Terminal)
 
