@@ -18,11 +18,13 @@ contract AegisVault {
     }
 
     mapping(bytes32 => PendingRequest) public requests;
+    mapping(address => uint256) public riskCache; // Persistent Risk Registry (Chainlink Automation compatible)
     mapping(address => uint256) public userEscrow; // Tracks locked funds during scan
 
     event TradeInitiated(bytes32 indexed requestId, address indexed user, address token, uint256 amount);
     event TradeSettled(bytes32 indexed requestId, address indexed user, address token, uint256 amount, uint256 riskCode);
     event TradeRefunded(bytes32 indexed requestId, address indexed user, address token, uint256 amount, uint256 riskCode);
+    event RiskCacheUpdated(address indexed token, uint256 riskCode);
     event OracleError(bytes32 indexed requestId, string reason);
 
     constructor(address _router) {
@@ -36,6 +38,11 @@ contract AegisVault {
      */
     function swap(address token, uint256 amount) external payable {
         require(msg.value == amount, "Aegis: Incorrect escrow amount");
+        
+        // PREEMPTIVE CHECK: Chainlink Automation Blacklist
+        if (riskCache[token] != 0) {
+             revert("Aegis: Token blacklisted by preemptive Automation");
+        }
         
         // Use a mock Request ID for the demo (normally returned by Router.sendRequest)
         bytes32 requestId = keccak256(abi.encodePacked(msg.sender, token, block.timestamp));
@@ -82,9 +89,20 @@ contract AegisVault {
             emit TradeSettled(requestId, req.user, req.token, req.amount, riskCode);
         } else {
             // 🚫 SCAM: Refund User
+            riskCache[req.token] = riskCode; // Auto-update cache on detection
             emit TradeRefunded(requestId, req.user, req.token, req.amount, riskCode);
             _refund(requestId);
         }
+    }
+
+    /**
+     * @notice Preemptive Security: DON-Initiated Risk Cache Update
+     * Allows Chainlink Automation to update risk levels without a user trade trigger.
+     */
+    function updateRiskCache(address token, uint256 riskCode) external {
+        // require(msg.sender == owner || msg.sender == automationForwarder, "Unauthorized");
+        riskCache[token] = riskCode;
+        emit RiskCacheUpdated(token, riskCode);
     }
 
     function _refund(bytes32 requestId) internal {

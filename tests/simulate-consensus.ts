@@ -16,28 +16,24 @@ async function main() {
                 await new Promise(r => setTimeout(r, 5000));
             }
 
-            // Extract the final JSON result
-            const lines = result.trim().split('\n');
+            // Robust extraction using delimiters
+            const startTag = "::AEGIS_RESULT::";
+            const startIdx = result.indexOf(startTag);
             let jsonStr = "";
 
-            for (let j = 0; j < lines.length; j++) {
-                if (lines[j].includes("Workflow Simulation Result:")) {
-                    // The result is usually on the next non-empty line
-                    for (let k = j + 1; k < lines.length; k++) {
-                        if (lines[k].trim().length > 0) {
-                            jsonStr = lines[k].trim();
-                            break;
-                        }
-                    }
-                    break;
+            if (startIdx !== -1) {
+                const endIdx = result.indexOf(startTag, startIdx + startTag.length);
+                if (endIdx !== -1) {
+                    jsonStr = result.substring(startIdx + startTag.length, endIdx).trim();
                 }
             }
 
             if (!jsonStr) {
-                // Fallback: Try to find a line that looks like a JSON object or stringified JSON
+                // Fallback: Try to find a line that looks like a JSON object
+                const lines = result.trim().split('\n');
                 for (let j = lines.length - 1; j >= 0; j--) {
                     const line = lines[j].trim();
-                    if ((line.startsWith('{') && line.endsWith('}')) || (line.startsWith('"') && line.endsWith('"'))) {
+                    if ((line.startsWith('{') && line.endsWith('}'))) {
                         jsonStr = line;
                         break;
                     }
@@ -45,6 +41,12 @@ async function main() {
             }
 
             if (!jsonStr) throw new Error("No JSON output found");
+
+            // Sanitize: Remove escaped quotes if it's a stringified JSON string
+            if (jsonStr.startsWith('"') && jsonStr.endsWith('"')) {
+                jsonStr = jsonStr.slice(1, -1);
+            }
+            jsonStr = jsonStr.replace(/\\"/g, '"'); // Unescape quotes
 
             // Handle potential double-encoding (it might be a string "{\"foo\":...}")
             let resultObj;

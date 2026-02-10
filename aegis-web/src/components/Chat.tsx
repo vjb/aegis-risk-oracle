@@ -173,13 +173,13 @@ export default function Chat({ onIntent }: ChatProps) {
         if (isRiskQuery) {
             setScanningStatus('detecting');
             addLog('INFO', `INTERCEPTED INTENT: ${userMsg.slice(0, 30)}...`);
-            addLog('WARN', 'SECURE ESCROW INITIALIZING...');
+            addLog('WARN', '🔒 LOCKING ASSETS IN ESCROW...');
             setCompletedSteps([false, false, false]);
             await new Promise(resolve => setTimeout(resolve, 800));
 
             // Simultaneous start - Market & Security
             setScanningStatus('scanning');
-            addLog('INFO', 'DISPATCHING ORACLE REQUEST (ID: 0xef85...)');
+            addLog('INFO', '📡 DISPATCHING ORACLE REQUEST (ID: 0xef85...)');
             setActiveSteps([true, true, false]);
 
             // Staggered completion
@@ -204,7 +204,7 @@ export default function Chat({ onIntent }: ChatProps) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             addLog('AI', 'CONSTRUCTING FORENSIC BITMASK...');
             await new Promise(resolve => setTimeout(resolve, 1000));
-            addLog('CONSENSUS', 'DON: REACHING DETERMINISTIC AGREEMENT...');
+            addLog('CONSENSUS', '🧠 AWAITING CONSENSUS VERDICT...');
             await new Promise(resolve => setTimeout(resolve, 1000));
             addLog('CONSENSUS', 'JUDGE VERDICT: RISK_CODE(0)');
 
@@ -236,7 +236,7 @@ export default function Chat({ onIntent }: ChatProps) {
             }
 
             pushScanReport();
-            addLog('INFO', 'VAULT: RELEASING ASSETS. SETTLED.');
+            addLog('INFO', '✅ VAULT: RELEASING ASSETS. SETTLED.');
             setScanningStatus('idle');
         }
 
@@ -386,8 +386,8 @@ export default function Chat({ onIntent }: ChatProps) {
                             {
                                 (scanningStatus === 'idle') ? "VAULT STANDBY" :
                                     (scanningStatus === 'detecting') ? "LOCKING ASSETS..." :
-                                        (scanningStatus === 'scanning') ? "DON: INBOUND SIGNALS" :
-                                            (scanningStatus === 'analyzing') ? "AI: FORENSIC SYNTHESIS" : "VERIFIED SAFE"
+                                        (scanningStatus === 'scanning') ? "DISPATCHING REQUEST" :
+                                            (scanningStatus === 'analyzing') ? "AWAITING CONSENSUS" : "VERIFIED SAFE"
                             }
                         </div>
                     </div>

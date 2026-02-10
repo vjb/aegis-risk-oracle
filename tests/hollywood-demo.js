@@ -154,6 +154,33 @@ async function main() {
     await runScenario("TRUSTED SWAP", "0x4200000000000000000000000000000000000006", "2100.00", "WETH Asset Verification");
     await new Promise(r => setTimeout(r, 2000));
     await runScenario("PROTECTED ATTACK", "0xBAD0000000000000000000000000000000000066", "99999.00", "Simulated Volatility / Source Anomaly");
+    await new Promise(r => setTimeout(r, 2000));
+
+    // -- SCENARIO 3: AUTOMATION PREEMPTIVE BLOCK --
+    console.log(`\n\n${colors.gray}================================================================${colors.reset}`);
+    console.log(`${colors.cyan}${colors.bold} 🛡️  SCENARIO: PREEMPTIVE PROTECTION ${colors.reset} ${colors.gray}(Chainlink Automation)${colors.reset}`);
+    console.log(`${colors.gray}================================================================${colors.reset}`);
+
+    const PEPE = "0x6982508145454Ce325dDbE47a25d4ec3d2311933";
+    console.log(`\n${colors.yellow}${colors.bold}[AUTOMATION] ⚙️  Chainlink Node: Detected Malicious Pattern in mempool for PEPE.${colors.reset}`);
+    console.log(`   -> Executing updateRiskCache(${PEPE}, 16)...`);
+
+    runCast(['send', CONTRACT_ADDRESS, 'updateRiskCache(address,uint256)', PEPE, '16', '--private-key', USER_PRIVATE_KEY, '--rpc-url', 'http://localhost:8545']);
+
+    await new Promise(r => setTimeout(r, 800));
+    console.log(`   -> ${colors.green}Vault Risk Cache Updated. Asset blacklisted.${colors.reset}`);
+
+    console.log(`\n${colors.cyan}${colors.bold}[DISPATCHER] 🤖 User Intent: Swap 1 ETH for PEPE...${colors.reset}`);
+    await new Promise(r => setTimeout(r, 600));
+    console.log(`   -> [JARVIS] Warning: Preemptive blacklist hit. Blocking at source.`);
+
+    try {
+        console.log(`\n${colors.yellow}${colors.bold}[VAULT] 🔒 Intercepting Swap...${colors.reset}`);
+        const amt = "1000000000000000000";
+        runCast(['send', CONTRACT_ADDRESS, 'swap(address,uint256)', PEPE, amt, '--value', amt, '--private-key', USER_PRIVATE_KEY, '--rpc-url', 'http://localhost:8545']);
+    } catch (e) {
+        console.log(`\n${colors.red}${colors.bold}[VAULT] 🚫 STOP. Blacklist Match (Automation). Trade Blocked.${colors.reset}`);
+    }
 
     console.log(`\n${colors.cyan}${colors.bold}================================================================${colors.reset}`);
     console.log(`${colors.cyan}${colors.bold}   🏁 PROTOCOL VERIFIED: The Code Enforces the Safety.${colors.reset}`);

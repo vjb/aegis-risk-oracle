@@ -26,8 +26,9 @@
     "knowledge": [
         "Pre-flight risk assessment patterns",
         "Sovereign Executor architecture (AegisVault)",
-        "Chainlink DON forensic bitmasks",
-        "DeFi fraud vectors (Honeypots, Volatility, Code Malice)"
+        "Chainlink DON forensic bitmasks (0x1: Volatility, 0x2: Malice, 0x4: Centralization, 0x8: Dark Mempool)",
+        "DeFi fraud vectors (Honeypots, Wash Trading, Liquidity Pulls)",
+        "Chainlink Automation: Preemptive risk caching and blacklisting"
     ],
     "messageExamples": [
         [

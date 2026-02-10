@@ -14,6 +14,12 @@ The shift is from "Trusting the AI" to **"Trusting the Code"**:
 - **Contract-Initiated Forensics**: The Vault itself hires the Chainlink Network to perform a forensic audit. It doesn't rely on the user to "remember" to check.
 - **The Verdict**: The transaction only settles if the Chainlink DON returns a clean (Risk 0) verdict. If an anomaly is found, the Vault autonomously reverts and refunds.
 
+### 🛡️ The Triple Lock Architecture
+Aegis implements a **Triple Lock** security system to ensure capital safety:
+1. **Lock 1: Sovereign Smart Escrow**: Assets are locked *before* audit begins.
+2. **Lock 2: DON Consensus**: Verdicts require multi-node agreement on a deterministic bitmask.
+3. **Lock 3: Forensic AI Telemetry**: Deep behavioral analysis with deterministic "LLM on Rails" output.
+
 ---
 
 ## 🚀 Key Features
@@ -43,8 +49,8 @@ The "Risk Bitmask" keeps LLMs **"on the rails."** By forcing nodes to output a s
 ## 🛠️ The "Why" behind the Stack
 
 - **Why Chainlink Functions?** The Vault is isolated. It needs a secure, decentralized bridge to reach off-chain data and the OpenAI forensic models without introducing a single point of failure.
-- **Why VRF?** We salt every request with **Chainlink VRF**. This ensuring the AI output cannot be pre-gamed or predicted by a malicious validator, preserving audit integrity.
-- **Why Automation?** Aegis uses **Chainlink Automation** to re-scan vault holdings periodically. If a "safe" token becomes a scam 24 hours later, the Vault can automatically freeze remaining assets.
+- **Why VRF?** We salt every request with **Chainlink VRF**, ensuring the AI output cannot be pre-gamed or predicted by a malicious validator.
+- **Why Automation?** Aegis uses **Chainlink Automation** for **Preemptive Blacklisting**. The DON continuously monitors market signals and updates the Vault's on-chain `riskCache` periodically. If a token is blacklisted, future swaps are blocked instantly at the storage level, saving user's gas and time.
 
 ---
 
@@ -59,6 +65,7 @@ sequenceDiagram
 
     Note over User, Vault: Phase 1: The Lock
     User->>Vault: Call swap(Token, Amount)
+    Vault->>Vault: 🔒 Check Risk Cache (Automation)
     Vault->>Vault: 🔒 LOCK ASSETS in Escrow
     
     Note over Vault, APIs: Phase 2: Contract-Initiated Forensics
@@ -69,6 +76,7 @@ sequenceDiagram
     
     Note over DON, Vault: Phase 3: The Enforcement
     DON->>Vault: fulfillRequest(RiskCode)
+    DON->>Vault: updateRiskCache(Token, RiskCode) // Automation
     
     alt Risk == 0 (CLEAN)
         Vault->>Vault: 🔓 RELEASE & SETTLE Trade

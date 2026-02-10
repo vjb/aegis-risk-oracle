@@ -9,9 +9,10 @@ This directory contains the **Chainlink Runtime Environment (CRE)** logic. It ac
 ## 🏛️ The Role of the DON
 
 In the Aegis protocol, the Decentralized Oracle Network (DON) is the **Judge**. It doesn't just "report" data; it **performs forensic synthesis**.
-1. **Contract-Initiated**: Triggered automatically by the `AegisVault.sol` request.
-2. **Atomic Execution**: All logic runs in a single, trust-minimized workflow.
-3. **Deterministic Consensus**: Multiple nodes must agree on the exact **Risk Bitmask** to settle the trade.
+1. **Contract-Initiated**: Triggered automatically by the `AegisVault.sol` user trade request.
+2. **Autonomous Re-scanning**: Also triggered periodically via **Chainlink Automation** to monitor known market signals.
+3. **Atomic Execution**: All logic runs in a single, trust-minimized workflow.
+4. **Deterministic Consensus**: Multiple nodes must agree on the exact **Risk Bitmask** to settle the trade or update the on-chain cache.
 
 ---
 

@@ -54,11 +54,9 @@ function Run-AegisScenario([string]$Name, [string]$Token, [string]$Price, [strin
     Write-Host "`n[PHASE 2] 🧠 Autonomous Audit: Chainlink DON Logic" -ForegroundColor Yellow
     Write-Host "   -> Triggering Forensic AI scan across Tri-Vector Matrix..." -ForegroundColor Gray
     
-    $payloadText = @"
-{"tokenAddress":"$Token","chainId":"31337","askingPrice":"$Price"}
-"@
+    $payloadText = '{\"tokenAddress\":\"' + $Token + '\",\"chainId\":\"31337\",\"askingPrice\":\"' + $Price + '\"}'
     
-    $full = docker exec aegis_dev cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload $payloadText 2>&1
+    $full = docker exec aegis_dev cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload "$payloadText" 2>&1
     $raw = ($full | Out-String)
 
     $startTag = "::AEGIS_RESULT::"

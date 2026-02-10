@@ -8,10 +8,17 @@ The **Aegis Mission Control** is a high-performance Next.js dashboard designed f
 
 ## 🎨 Layout: Split-Screen Forensics
 
-The Mission Control follows a three-pane "Matrix" view:
+The Mission Control follows a three-pane "SecOps" view:
 - **Left Pane (The Dispatcher)**: The Agent interface where intents are parsed and JARVIS-style compliance advice is given.
 - **Center Pane (The Vault Lock)**: A dominant visual indicator of the Vault's status—LOCKED (In Audit), VERIFIED (Released), or REJECTED (Blocked).
 - **Right Pane (The Matrix Logs)**: A rolling terminal view of the Chainlink DON's backend telemetry, showing raw node consensus.
+
+### 🔒 High-Stakes UX: The Movement of Money
+The UI reflects the protocol's **Vault-First** philosophy. Loading states mirror the movement of funds:
+1. `🔒 LOCKING ASSETS IN ESCROW...`
+2. `📡 DISPATCHING ORACLE REQUEST...`
+3. `🧠 AWAITING CONSENSUS VERDICT...`
+4. `✅ VAULT: RELEASING ASSETS. SETTLED.`
 
 ---
 

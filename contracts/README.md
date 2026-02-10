@@ -26,7 +26,8 @@ sequenceDiagram
     alt Risk == 0 (CLEAN)
         Vault->>Vault: 🔓 Release & Settle Trade
     else Risk > 0 (THREAT)
-        Vault->>Vault: 🚫 Revert & Refund User
+        Vault->>Vault: 🚫 Block & Refund User
+        Vault->>Vault: 💾 Update Risk Cache (Preemptive)
     end
 ```
 
@@ -45,6 +46,9 @@ The Vault decodes a **Deterministic Risk Bitmask** returned by the DON.
 - **Verdict 0**: The trade is released.
 - **Verdict > 0**: The trade is blocked. 
 
+### 4. Preemptive Risk Cache (Chainlink Automation)
+The Vault maintains an on-chain `riskCache`. Chainlink Automation continuously monitors market signals and triggers `updateRiskCache()` for high-risk assets. This allows the Vault to block known scams instantly at the storage level, bypassing the need for a full forensic consensus audit for known threats.
+
 ---
 
 ## 📜 Sovereign Functions
@@ -53,7 +57,10 @@ The Vault decodes a **Deterministic Risk Bitmask** returned by the DON.
 **Phase 1: The Trigger.** Initiates the transaction, locks the capital in sovereign escrow, and triggers the Chainlink forensic scan.
 
 ### `fulfillRequest(bytes32 requestId, bytes response, bytes err)`
-**Phase 3: The Enforcement.** The callback from the Chainlink DON. It decodes the forensic bitmask and either settles the trade or executes an emergency refund.
+**Phase 3: The Enforcement.** The callback from the Chainlink DON. It decodes the forensic bitmask and either settles the trade or executes an emergency refund. It also updates the local `riskCache` if a threat is detected.
+
+### `updateRiskCache(address token, uint256 riskCode)`
+**Preemptive Security.** Allows Chainlink Automation to update a token's risk level without a user-initiated trade, ensuring the Vault's firewall is always up to date.
 
 ---
 
