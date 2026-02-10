@@ -163,7 +163,11 @@ export default function Chat({ onIntent }: ChatProps) {
         // Set focus immediately after clear to prevent loss
         inputRef.current?.focus();
 
-        const isScamToken = userMsg.toLowerCase().includes('scam');
+        const isScamToken = userMsg.toLowerCase().includes('scam') ||
+            userMsg.toLowerCase().includes('reject') ||
+            userMsg.toLowerCase().includes('block') ||
+            userMsg.toLowerCase().includes('threat') ||
+            userMsg.toLowerCase().includes('rug');
         const isRiskQuery = isScamToken ||
             userMsg.toLowerCase().includes('swap') ||
             userMsg.toLowerCase().includes('risk') ||

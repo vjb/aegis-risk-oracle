@@ -2,72 +2,59 @@
 
 > **"In Code We Trust. In Governance We Enforce."**
 
-The `AegisVault.sol` contract is the **Sovereign Executor** of the Aegis Protocol. Unlike traditional security tools that merely "warn" users, the Aegis Vault **enforces** safety by intercepting every trade and requiring a forensic audit before settlement.
+This directory contains the `AegisVault.sol` smart contract—the heart of the protocol. This is where chainlink Automation and the "Triple Lock" are enforced.
+
+---
+
+## 👩‍⚖️ Judge's Guide: The Sovereign Contract
+
+Here is the exact code that powers the Sovereign Vault:
+
+| Feature | Description | Line of Code |
+| :--- | :--- | :--- |
+| **Escrow Logic** | Locks user funds before dispatching the job. | [`swap()` method](AegisVault.sol#L45) |
+| **Automation Cache** | The `riskCache` mapping for preemptive updates. | [`riskCache`](AegisVault.sol#L35) |
+| **Enforcement** | The `fulfillRequest` callback that blocks scams. | [`fulfillRequest()`](AegisVault.sol#L80) |
 
 ---
 
 ## 🏛️ Architecture: The "Sovereign Executor" Pattern
 
-Aegis shifts the trust from a chatbot to an immutable smart contract. The Vault acts as a **Smart Escrow** that holds capital hostage until the Chainlink network verifies' the trade's integrity.
+Aegis shifts trust from a chatbot to an immutable smart contract. The Vault acts as a **Smart Escrow** that holds capital hostage until the Chainlink network proves the trade is safe.
 
-```mermaid
-sequenceDiagram
-    participant User as 👤 User / Agent
-    participant Vault as ⛓️ AegisVault.sol
-    participant DON as 🛡️ Chainlink DON
-    
-    User->>Vault: 1. swap(Asset, Amount)
-    Vault->>Vault: 🔒 ASSETS LOCKED in Escrow
-    Vault-->>DON: 2. Request Forensic Scan
-    
-    DON->>DON: 🧠 AI Consensus Audit
-    DON->>Vault: 3. fulfillRequest(RiskBitmask)
-    
-    alt Risk == 0 (CLEAN)
-        Vault->>Vault: 🔓 Release & Settle Trade
-    else Risk > 0 (THREAT)
-        Vault->>Vault: 🚫 Block & Refund User
-        Vault->>Vault: 💾 Update Risk Cache (Preemptive)
-    end
+1. **User calls `swap(ETH)`**
+2. **Vault LOCKS the ETH** (Triple Lock Phase 1)
+3. **Vault DISPATCHES job to Chainlink**
+4. **Vault WAITS for bitmask consensus**
+5. **Vault SETTLES or REFUNDS** autonomously.
+
+---
+
+## 🤖 Chainlink Automation Integration
+
+We use Chainlink Automation to **Preemptively Blacklist** threats.
+
+- **The Problem**: Waiting for a user to trade a scam token wastes their gas and time.
+- **The Solution**: The DON monitors the mempool. If it sees a known scam (e.g. `PEPE-SCAM`), it calls `updateRiskCache()` on the vault.
+- **The Result**: The Vault updates its internal blocklist. Future attempts to swap that token are **reverted instantly** at the contract level.
+
+```solidity
+// AUTOMATION HOOK
+function updateRiskCache(address token, uint256 riskCode) external {
+    // Only authorized forwarders can call this
+    riskCache[token] = riskCode;
+    emit RiskCacheUpdated(token, riskCode);
+}
 ```
 
 ---
 
-## 🛡️ Core Protocol Mechanics
+## 🧪 Verify This Contract
 
-### 1. Contract-Initiated Forensics
-The transaction starts on-chain. When `swap()` is called, the Vault emits a request that triggers the off-chain DON. This ensures the audit is mandatory and atomic—never optional.
+Run the Hollywood Demo to see the contract lock and release funds in real-time:
 
-### 2. Autonomous Capital Custody
-During the audit, the user's funds are held in the contract's sovereign escrow. If the DON identifies a threat (Honeypot, Malicious Code, etc.), the Vault **autonomously returns funds** to the user, bypassing the malicious target.
-
-### 3. Bitmask Verification
-The Vault decodes a **Deterministic Risk Bitmask** returned by the DON. 
-- **Verdict 0**: The trade is released.
-- **Verdict > 0**: The trade is blocked. 
-
-### 4. Preemptive Risk Cache (Chainlink Automation)
-The Vault maintains an on-chain `riskCache`. Chainlink Automation continuously monitors market signals and triggers `updateRiskCache()` for high-risk assets. This allows the Vault to block known scams instantly at the storage level, bypassing the need for a full forensic consensus audit for known threats.
-
----
-
-## 📜 Sovereign Functions
-
-### `swap(address token, uint256 amount)`
-**Phase 1: The Trigger.** Initiates the transaction, locks the capital in sovereign escrow, and triggers the Chainlink forensic scan.
-
-### `fulfillRequest(bytes32 requestId, bytes response, bytes err)`
-**Phase 3: The Enforcement.** The callback from the Chainlink DON. It decodes the forensic bitmask and either settles the trade or executes an emergency refund. It also updates the local `riskCache` if a threat is detected.
-
-### `updateRiskCache(address token, uint256 riskCode)`
-**Preemptive Security.** Allows Chainlink Automation to update a token's risk level without a user-initiated trade, ensuring the Vault's firewall is always up to date.
-
----
-
-## 🧪 Forensic Verification
-The contract integrity is verified via the "Hollywood" demo suite.
 ```bash
-node ./tests/hollywood-demo.js
+node ../tests/hollywood-demo.js
 ```
 
 *Aegis Vault: The decentralized firewall for DeFi 🛡️*
