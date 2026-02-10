@@ -7,7 +7,11 @@
 DeFi is plagued by "Rug Pulls" and sophisticated scams that basic smart contracts cannot detect. Users blindly interact with contracts, trusting only surface-level data.
 
 ### The Solution
-**Aegis** is a **DeFi Safety Agent** powered by a **Decentralized Oracle Network (DON)**. It uses a novel "Split-Brain" architecture to bring **AI Forensics** on-chain, requiring **Consensus Validation** before allowing users to interact with high-risk contracts.
+### The Solution
+**Aegis** is a **DeFi Safety Agent** powered by a **Decentralized Oracle Network (DON)**. In our "Winning" architecture, the **AegisVault** acts as the **Sovereign Executor**:
+- **Initiation**: The ElizaOS Agent submits a trade intent.
+- **Sovereignty**: The Vault autonomously locks the funds and triggers a forensic scan via Chainlink.
+- **Enforcement**: The Vault settlements occur only after a verifiable "SAFE" verdict from the DON.
 
 ---
 
@@ -21,7 +25,10 @@ DeFi is plagued by "Rug Pulls" and sophisticated scams that basic smart contract
 
 ## 🚀 Key Features
 
-### 1. 🧠 Deterministic "Split-Brain" Oracle
+### 1. 🛡️ Sovereign Execution (Contract-First)
+Unlike traditional bots, Aegis puts the smart contract in charge. The AI Agent acts as the "Initiator," but the **AegisVault** acts as the final arbiter. The Agent submits the trade intent, but the Vault autonomously triggers the Chainlink CRE to verify the asset's integrity before settlement occurs.
+
+### 2. 🧠 Deterministic "Split-Brain" Oracle
 Aegis uses a novel **Split-Brain Architecture** to ensure non-deterministic LLMs can run on a consensus network:
 - **The "Right Brain" (AI)**: Analyzes fuzzy data (Sentiment, Wash Trading patterns, Metadata).
 - **The "Left Brain" (Logic)**: Normalizes outputs into a **Deterministic Bitmask**.
@@ -83,23 +90,32 @@ This project leverages the full Chainlink stack to ensure trust-minimized execut
 ```mermaid
 sequenceDiagram
     participant Agent as 🤖 AI Agent (ElizaOS)
-    participant CRE as 🛡️ Aegis (Chainlink CRE)
-    participant APIs as 📡 External APIs
     participant Vault as ⛓️ AegisVault.sol
+    participant Router as 🧭 Chainlink Router
+    participant DON as ⚡ Chainlink DON (CRE)
+    participant APIs as 📡 External APIs
 
-    Agent->>CRE: 1. Request Risk Assessment (Token, Price, Chain)
+    Note over Agent, Vault: Phase 1: The Trigger
+    Agent->>Vault: 1. Call swap(Token, Amount)
+    Vault->>Vault: 🔒 Lock Funds (Escrow)
+    Vault->>Router: 2. Request Forensic Scan (Args: Token)
     
-    par Parallel Data Fetching
-        CRE->>APIs: CoinGecko (Market Health)
-        CRE->>APIs: GoPlus (Security Scans)
+    Note over Router, APIs: Phase 2: The Black Box (Off-Chain)
+    Router->>DON: Dispatch Job
+    DON->>APIs: Fetch CoinGecko & GoPlus
+    DON->>APIs: 🧠 AI Synthesis (GPT-4o)
+    DON->>DON: Consensus on Risk Bitmask
+    
+    Note over DON, Vault: Phase 3: The Enforcement
+    DON->>Vault: 3. fulfillRequest(RiskCode)
+    
+    alt Risk == 0 (SAFE)
+        Vault->>Vault: ✅ Unlock & Swap Funds
+        Vault-->>Agent: Transfer Tokens
+    else Risk > 0 (SCAM)
+        Vault->>Vault: 🚫 REVERT & Refund
+        Vault-->>Agent: Return Original Funds
     end
-    
-    CRE->>APIs: 2. AI Synthesis (GPT-4o Risk Analysis)
-    CRE->>CRE: 3. Deterministic Signing (PrivKey)
-    CRE-->>Agent: 4. Return Signature (Verdict + RiskCode)
-    
-    Agent->>Vault: 5. Execute Trade with Signature
-    Vault->>Vault: 6. Verify Signer & Data Integrity -> SWAP
 ```
 
 ---

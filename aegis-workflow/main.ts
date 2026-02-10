@@ -44,8 +44,8 @@ type Config = z.infer<typeof configSchema>;
 
 const requestSchema = z.object({
     tokenAddress: z.string().min(1),
-    chainId: z.string().min(1),
-    askingPrice: z.string().optional(),
+    chainId: z.union([z.string(), z.number()]).transform(val => val.toString()),
+    askingPrice: z.union([z.string(), z.number()]).optional().transform(val => val?.toString()),
     userAddress: z.string().optional(),
     coingeckoId: z.string().optional(),
     vrfSalt: z.string().optional(),
@@ -73,7 +73,9 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     // 1. Inbound Parsing
     let requestData: RiskAssessmentRequest;
     try {
-        const parsed = JSON.parse(payload.input?.toString() || "{}");
+        const rawBody = payload.input?.toString() || "{}";
+        runtime.log(`   ├─ Raw Payload: ${rawBody}`);
+        const parsed = JSON.parse(rawBody);
         requestData = requestSchema.parse(parsed);
         runtime.log(`[CRE] ${CYAN}INBOUND:${RESET} Security Audit Protocol Initiated`);
         runtime.log(`   ├─ Target Asset: ${YELLOW}${requestData.tokenAddress}${RESET}`);
@@ -228,43 +230,25 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     runtime.log(`[AI] ${YELLOW}REASONING:${RESET} ${aiParsed.reasoning}`);
     runtime.log(`[AI] ${CYAN}FINAL_VERDICT:${RESET} ${finalVerdict ? GREEN + "SAFE" : RED + "RISK_DETECTED"}${RESET} (Code: ${riskCode})`);
 
-    // 5. Signing
-    runtime.log(`[SIGNER] ${CYAN}COMMIT:${RESET} Finalizing Deterministic DON Signature...`);
+    // 5. Response Preparation
+    // In the "Sovereign Executor" flow, the contract expects the riskCode as result.
+    // For Chainlink Functions/CRE, we usually return a hex-encoded bytes response.
+
+    runtime.log(`[CRE] ${GREEN}FINALIZING RESPONSE:${RESET} Deterministic Bitmask -> Contract`);
+
     const timestamp = BigInt(Math.floor(Date.now() / 1000));
-    const salt = (requestData.vrfSalt || "0x" + "0".repeat(64)) as Hex;
-    const askingPriceWei = BigInt(Math.round(askingPrice * 1e8));
+    // Convert riskCode to 32-byte hex for abi.decode compatibility
+    const riskCodeHex = `0x${riskCode.toString(16).padStart(64, '0')}` as Hex;
 
-    const messageHash = keccak256(
-        encodePacked(
-            ['address', 'address', 'uint256', 'uint256', 'uint256', 'bool', 'uint256', 'bytes32'],
-            [
-                getAddress(requestData.userAddress || "0x0000000000000000000000000000000000000000"),
-                getAddress(requestData.tokenAddress),
-                BigInt(requestData.chainId || "1"),
-                askingPriceWei,
-                timestamp,
-                finalVerdict,
-                BigInt(riskCode),
-                salt
-            ]
-        )
-    );
-
-    const signature = await donAccount.signMessage({ message: { raw: messageHash } });
-    runtime.log(`[SIGNER] ${CYAN}LOCK_DETAILS:${RESET}`);
-    runtime.log(`   ├─ Signer Adr: ${YELLOW}${donAccount.address}${RESET}`);
-    runtime.log(`   ├─ VRF Salt:    ${salt}`);
-    runtime.log(`   └─ Message:     ${messageHash.slice(0, 24)}...`);
-    runtime.log(`[SIGNER] ${GREEN}OK:${RESET} Multi-Vector Signature Locked`);
-
-    return JSON.stringify({
+    const res = JSON.stringify({
         verdict: finalVerdict,
         riskCode: riskCode.toString(),
-        salt: salt,
-        signature: signature,
+        riskCodeHex: riskCodeHex,
         reasoning: aiParsed.reasoning,
         timestamp: timestamp.toString()
     });
+
+    return `::AEGIS_RESULT::${res}::AEGIS_RESULT::`;
 };
 
 const initWorkflow = (config: Config) => {

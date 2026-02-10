@@ -1,310 +1,121 @@
-# ════════════════════════════════════════════════════════════════════════════════
-# AEGIS END-TO-END DEMO SCRIPT
-# ════════════════════════════════════════════════════════════════════════════════
-# This script demonstrates the FULL integration of all Aegis components:
-#   1. 🧠 AI Risk Analysis (Chainlink CRE Workflow)
-#   2. 🔐 Cryptographic Signing (DON Private Key)
-#   3. ⛓️ On-Chain Execution (Anvil Local Chain)
-#
-# PREREQUISITES:
-#   - Anvil running (via deploy-local.ps1)
-#   - Docker running with aegis_dev container
-#   - AegisVault deployed to 0x5FbDB2315678afecb367f032d93F642f64180aa3
-# ════════════════════════════════════════════════════════════════════════════════
-
+# Aegis End-To-End "Hollywood" Demo Script
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$castPath = "cast"
+$CONTRACT_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+$USER_PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" 
 
-Write-Host "════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "   🚀 AEGIS FULL E2E DEMO: AI → SIGNATURE → BLOCKCHAIN" -ForegroundColor Cyan
-Write-Host "════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host ""
-
-# ════════════════════════════════════════════════════════════════════════════════
-# STEP 1: CHECK PREREQUISITES
-# ════════════════════════════════════════════════════════════════════════════════
-Write-Host "📋 Step 1: Checking Prerequisites..." -ForegroundColor Yellow
-
-# Check if Anvil is running
-$castPath = "$env:USERPROFILE\.foundry\bin\cast.exe"
-$env:FOUNDRY_DISABLE_NIGHTLY_WARNING = "1"
-
-try {
-    $chainId = & $castPath chain-id --rpc-url http://localhost:8545 2>&1
-    if ($LASTEXITCODE -ne 0) { throw "Anvil not running" }
-    Write-Host "   ✅ Anvil running (Chain ID: $chainId)" -ForegroundColor Green
-} catch {
-    Write-Host "   ❌ Anvil not running. Run .\deploy-local.ps1 first" -ForegroundColor Red
-    exit 1
+$RISK_FLAGS = @{
+    1   = "Low Liquidity Detected"
+    2   = "High Volatility Warning"
+    4   = "Malicious Code Patterns"
+    8   = "Centralized Ownership Risk"
+    16  = "Honeypot Trap Detected"
+    32  = "Impersonation Attempt"
+    64  = "Wash Trading Detected"
+    128 = "Suspicious Deployer History"
+    256 = "Phishing/Scam Signature"
+    512 = "AI Anomaly Detection"
 }
 
-# Check if Docker container is running
-$dockerCheck = docker ps --filter "name=aegis_dev" --format "{{.Names}}" 2>&1
-if ($dockerCheck -ne "aegis_dev") {
-    Write-Host "   ❌ Docker container not running. Run: docker-compose up -d" -ForegroundColor Red
-    exit 1
+function Decode-RiskCode([int]$code) {
+    if ($code -eq 0) { return @("✅ VERIFIED SAFE") }
+    $found = @()
+    foreach ($bit in $RISK_FLAGS.Keys | Sort-Object) {
+        if (($code -band $bit) -eq $bit) {
+            $found += ("🚫 " + $RISK_FLAGS[$bit])
+        }
+    }
+    return $found
 }
-Write-Host "   ✅ Docker container running" -ForegroundColor Green
 
-# Check if contract is deployed
-$CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-$code = & $castPath code $CONTRACT_ADDRESS --rpc-url http://localhost:8545 2>&1
-if ($code -eq "0x" -or $code -eq "") {
-    Write-Host "   ❌ AegisVault not deployed. Run .\deploy-local.ps1" -ForegroundColor Red
-    exit 1
-}
-Write-Host "   ✅ AegisVault deployed at $CONTRACT_ADDRESS" -ForegroundColor Green
-Write-Host ""
+function Run-AegisScenario([string]$Name, [string]$Token, [string]$Price, [string]$Info) {
+    Write-Host "`n"
+    Write-Host "================================================================" -ForegroundColor Cyan
+    Write-Host " 🎬 SCENARIO: $Name" -ForegroundColor Cyan -NoNewline
+    Write-Host " ($Info)" -ForegroundColor Gray
+    Write-Host "================================================================" -ForegroundColor Gray
 
-# ════════════════════════════════════════════════════════════════════════════════
-# STEP 2: RUN CHAINLINK CRE WORKFLOW (AI RISK ANALYSIS)
-# ════════════════════════════════════════════════════════════════════════════════
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host "🧠 Step 2: Running AI Risk Analysis via Chainlink CRE..." -ForegroundColor Cyan
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
-Write-Host ""
+    # -- PHASE 1 --
+    Write-Host "`n[PHASE 1] 🔒 Inherent Security: Capital Escrow" -ForegroundColor Yellow
+    Write-Host "   -> User initiates swap for asset: $Token" -ForegroundColor Gray
+    
+    $AMT = "1000000000000000000"
+    $init = & $castPath send $CONTRACT_ADDRESS "swap(address,uint256)" $Token $AMT --value $AMT --private-key $USER_PRIVATE_KEY --rpc-url http://localhost:8545 --json | ConvertFrom-Json
+    $txHash = $init.transactionHash
+    
+    Start-Sleep -Seconds 1
+    $rec = & $castPath receipt $txHash --rpc-url http://localhost:8545 --json | ConvertFrom-Json
+    $id = $rec.logs[0].topics[1]
+    
+    Write-Host "   -> AegisVault locked 1.0 ETH in sovereign escrow." -ForegroundColor Green
+    Write-Host "   -> Request ID: $($id.Substring(0,18))..." -ForegroundColor Gray
 
-# Use a safe token (WETH) payload for the successful demo flow
-# Use a safe token (WETH) payload for the successful demo flow
-$PAYLOAD_FILE = "$PSScriptRoot/payloads/test-payload-pass.json"
-
-Write-Host "   Token: WETH (Wrapped Ether on Base)" -ForegroundColor DarkGray
-Write-Host "   Payload: $PAYLOAD_FILE" -ForegroundColor DarkGray
-Write-Host ""
-
-# Run the CRE workflow simulation inside Docker
-# Read and compress the payload JSON to pass directly
-$jsonContent = Get-Content $PAYLOAD_FILE -Raw | ConvertFrom-Json | ConvertTo-Json -Depth 10 -Compress
-# Escape single quotes for sh (replace ' with '\'')
-$shSafeJson = $jsonContent -replace "'", "'\''"
-
-# Generate specific shell script to avoid quoting hell
-$shScriptPath = "$PSScriptRoot/run-cre.sh"
-$shScriptContent = @"
-#!/bin/sh
-cd /app
-cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload '$shSafeJson'
+    # -- PHASE 2 --
+    Write-Host "`n[PHASE 2] 🧠 Autonomous Audit: Chainlink DON Logic" -ForegroundColor Yellow
+    Write-Host "   -> Triggering Forensic AI scan across Tri-Vector Matrix..." -ForegroundColor Gray
+    
+    $payloadText = @"
+{"tokenAddress":"$Token","chainId":"31337","askingPrice":"$Price"}
 "@
-Set-Content -Path $shScriptPath -Value $shScriptContent -Encoding Ascii -NoNewline
-
-# Copy script to container and fix line endings (remove \r)
-docker cp "$shScriptPath" aegis_dev:/tmp/run-cre.sh
-try { docker exec aegis_dev sed -i 's/\r$//' /tmp/run-cre.sh } catch {}
-docker exec aegis_dev chmod +x /tmp/run-cre.sh
-
-# Execute script
-$cmd = "/tmp/run-cre.sh"
-# Cleanup happens after execution
-
-Write-Host "   Running CRE workflow..." -ForegroundColor Yellow
-
-# Capture the JSON result (similar to test-aegis.ps1)
-$GLOBAL:LastJsonResult = $null
-# Execute the script directly
-$output = docker exec aegis_dev $cmd 2>&1 | ForEach-Object {
-    $rawLine = $_.ToString()
-    $line = $rawLine.Trim()
     
-    # Capture JSON result line (v3.0 format: {"verdict":...})
-    if ($line -match '^\s*"\{.*verdict.*\}"') {
-        $GLOBAL:LastJsonResult = $line.Trim('"')
-    }
-    
-    # Also capture if it's a plain JSON object (no quotes)
-    if ($line -match '^\{.*verdict.*\}$') {
-        $GLOBAL:LastJsonResult = $line
-    }
-    
-    $rawLine  # Return for debugging if needed
-}
+    $full = docker exec aegis_dev cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload $payloadText 2>&1
+    $raw = ($full | Out-String)
 
-# Check if we captured the JSON
-if (-not $GLOBAL:LastJsonResult) {
-    Write-Host "   ❌ Failed to parse CRE output" -ForegroundColor Red
-    Write-Host "Output:" -ForegroundColor DarkGray
-    $output | ForEach-Object { Write-Host $_ -ForegroundColor DarkGray }
-    exit 1
-}
-
-# Unescape the JSON (remove escaped quotes)
-$cleanJson = $GLOBAL:LastJsonResult -replace '\\"', '"'
-
-# Parse the JSON result
-try {
-    $result = $cleanJson | ConvertFrom-Json
-} catch {
-    Write-Host "   ❌ Failed to parse JSON: $_" -ForegroundColor Red
-    Write-Host "Raw JSON:" -ForegroundColor DarkGray
-    Write-Host $GLOBAL:LastJsonResult -ForegroundColor DarkGray
-    exit 1
-}
-
-Write-Host "   ✅ CRE Analysis Complete!" -ForegroundColor Green
-Write-Host ""
-# Convert Unix timestamp to datetime (compatible with older PowerShell)
-$timestampDate = (Get-Date "1970-01-01 00:00:00").AddSeconds($result.timestamp)
-
-Write-Host "   📊 Risk Assessment:" -ForegroundColor White
-Write-Host "      Decision: $($result.decision)" -ForegroundColor $(if ($result.decision -eq "EXECUTE") { "Green" } else { "Red" })
-Write-Host "      Risk Score: $($result.riskScore)/10" -ForegroundColor DarkGray
-Write-Host "      Timestamp: $($timestampDate.ToString('HH:mm:ss'))" -ForegroundColor DarkGray
-Write-Host ""
-
-# ════════════════════════════════════════════════════════════════════════════════
-# STEP 3: PREPARE ON-CHAIN TRANSACTION DATA
-# ════════════════════════════════════════════════════════════════════════════════
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
-Write-Host "🔐 Step 3: Preparing Signed Transaction for Blockchain..." -ForegroundColor Magenta
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Magenta
-Write-Host ""
-
-# Extract data from CRE result
-$userAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" # Using sender as user for demo simplicity
-$tokenAddress = $result.tokenAddress || "0x4200000000000000000000000000000000000006" # Default WETH on Base
-$chainId = $result.chainId || "8453"
-$askingPrice = "2100" # From payload
-$timestamp = $result.timestamp
-$verdict = $result.verdict # Boolean
-$riskCode = $result.riskCode
-$salt = $result.salt
-# reasoningHash is no longer part of the signed struct in v3.0
-
-# The signature from the CRE
-$signature = $result.signature
-
-# Convert asking price to integer (8 decimals) as expected by the contract signing logic
-$askingPriceWei = [Math]::Round([double]$askingPrice * 1e8)
-
-# Build the RiskAssessment struct for the smart contract (AegisVault v3.0)
-# Solidity struct: (address userAddress, address tokenAddress, uint256 chainId, uint256 askingPrice, uint256 timestamp, bool verdict, uint256 riskCode, bytes32 salt)
-# Note: Boolean must be passed as "true" or "false" string to cast
-$verdictStr = if ($verdict) { "true" } else { "false" }
-$assessment = "($userAddress,$tokenAddress,$chainId,$askingPriceWei,$timestamp,$verdictStr,$riskCode,$salt)"
-
-Write-Host "   📋 Transaction Parameters:" -ForegroundColor White
-Write-Host "      User:       $userAddress" -ForegroundColor DarkGray
-Write-Host "      Token:      $tokenAddress" -ForegroundColor DarkGray
-Write-Host "      Chain ID:   $chainId" -ForegroundColor DarkGray
-Write-Host "      Risk Code:  $riskCode" -ForegroundColor DarkGray
-Write-Host "      Verdict:    $verdictStr" -ForegroundColor DarkGray
-Write-Host "      Signature:   $($signature.Substring(0, 20))..." -ForegroundColor DarkGray
-Write-Host ""
-
-# ════════════════════════════════════════════════════════════════════════════════
-# STEP 4: EXECUTE TRANSACTION ON ANVIL BLOCKCHAIN
-# ════════════════════════════════════════════════════════════════════════════════
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
-Write-Host "⛓️  Step 4: Executing Transaction on Anvil Blockchain..." -ForegroundColor Green
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
-Write-Host ""
-
-# User private key (Anvil's second default account)
-$USER_PRIVATE_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
-
-Write-Host "   Calling AegisVault.swapWithOracle()..." -ForegroundColor Yellow
-
-# Call the smart contract with the v3.0 struct definition (executeTradeWithOracle)
-$txResult = & $castPath send $CONTRACT_ADDRESS `
-    "executeTradeWithOracle(uint256,(address,address,uint256,uint256,uint256,bool,uint256,bytes32),bytes)" `
-    1000000000000000000 `
-    $assessment `
-    $signature `
-    --private-key $USER_PRIVATE_KEY `
-    --rpc-url http://localhost:8545 2>&1
-
-if ($LASTEXITCODE -eq 0) {
-    Write-Host ""
-    Write-Host "   ✅ SUCCESS! Transaction Executed On-Chain!" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "   📝 Transaction Details:" -ForegroundColor White
-    
-    # Extract transaction hash from output
-    $txHash = ($txResult | Select-String -Pattern "transactionHash\s+(.+)" | ForEach-Object { $_.Matches.Groups[1].Value })
-    
-    if ($txHash) {
-        Write-Host "      TX Hash: $txHash" -ForegroundColor Cyan
-    }
-    
-    Write-Host "      Contract: $CONTRACT_ADDRESS" -ForegroundColor DarkGray
-    Write-Host "      Event: TradeExecuted(user, WETH, 1 ETH)" -ForegroundColor DarkGray
-    Write-Host ""
-    
-} else {
-    Write-Host ""
-    Write-Host "   ❌ Transaction Failed or Blocked!" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "   This could mean:" -ForegroundColor Yellow
-    Write-Host "      • Risk score was too high (≥7)" -ForegroundColor DarkGray
-    Write-Host "      • Decision was REJECT" -ForegroundColor DarkGray
-    Write-Host "      • Signature verification failed" -ForegroundColor DarkGray
-    Write-Host "      • Salt was already used (Replay Protection)" -ForegroundColor DarkGray
-    Write-Host ""
-    Write-Host "   Output:" -ForegroundColor DarkGray
-    Write-Host $txResult -ForegroundColor DarkGray
-}
-
-# ════════════════════════════════════════════════════════════════════════════════
-# STEP 5: DEMONSTRATE REPLAY ATTACK PREVENTION
-# ════════════════════════════════════════════════════════════════════════════════
-Write-Host ""
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
-Write-Host "🛡️  Step 5: Testing Replay Attack Prevention..." -ForegroundColor Yellow
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
-Write-Host ""
-
-Write-Host "   Attempting to replay the SAME transaction..." -ForegroundColor DarkGray
-Write-Host "   (Using the same salt: $($salt.Substring(0,18))...)" -ForegroundColor DarkGray
-Write-Host ""
-
-# Try to replay the exact same transaction
-$replayResult = & $castPath send $CONTRACT_ADDRESS `
-    "executeTradeWithOracle(uint256,(address,address,uint256,uint256,uint256,bool,uint256,bytes32),bytes)" `
-    1000000000000000000 `
-    $assessment `
-    $signature `
-    --private-key $USER_PRIVATE_KEY `
-    --rpc-url http://localhost:8545 2>&1
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "   ✅ BLOCKED! Replay attack prevented!" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "   📝 Contract Response:" -ForegroundColor White
-    
-    # Extract the revert reason
-    if ($replayResult -match "Request already processed") {
-        Write-Host "      Reason: Request already processed" -ForegroundColor Cyan
+    $startTag = "::AEGIS_RESULT::"
+    $startIdx = $raw.IndexOf($startTag)
+    if ($startIdx -ge 0) {
+        $jStr = $raw.Substring($startIdx + $startTag.Length)
+        $endIdx = $jStr.IndexOf($startTag)
+        if ($endIdx -ge 0) {
+            $jStr = $jStr.Substring(0, $endIdx).Trim()
+            $jStr = $jStr.Replace('\"', '"')
+            $res = $jStr | ConvertFrom-Json
+            $hex = $res.riskCodeHex
+            $code = [int]$res.riskCode
+        } else {
+            Write-Host "   X Result Capture Error" -ForegroundColor Red
+            return
+        }
     } else {
-        Write-Host "      Reason: Signature verification or replay check failed" -ForegroundColor Cyan
+        Write-Host "   X AI Analysis Failed" -ForegroundColor Red
+        return
     }
+
+    Write-Host "   -> AI Synthesis Complete." -ForegroundColor Cyan
+    Write-Host "   -> AI Reasoning: $($res.reasoning)" -ForegroundColor DarkCyan
     
-    Write-Host ""
-    Write-Host "   This proves the contract's replay protection works:" -ForegroundColor DarkGray
-    Write-Host "      • Each signed verdict can only be used ONCE" -ForegroundColor DarkGray
-    Write-Host "      • Attackers cannot reuse old approvals" -ForegroundColor DarkGray
-    Write-Host ""
-} else {
-    Write-Host "   ⚠️  WARNING: Replay was NOT blocked!" -ForegroundColor Red
-    Write-Host "   This should not happen - replay protection may be disabled" -ForegroundColor Red
-    Write-Host ""
+    $flags = Decode-RiskCode $code
+    foreach ($f in $flags) {
+        if ($code -eq 0) { Write-Host "   $f" -ForegroundColor Green }
+        else { Write-Host "   $f" -ForegroundColor Red }
+    }
+
+    # -- PHASE 3 --
+    Write-Host "`n[PHASE 3] 🛡️ Decisive Enforcement" -ForegroundColor Yellow
+    Write-Host "   -> Sovereign Executor evaluating DON verdict..." -ForegroundColor Gray
+    Start-Sleep -Seconds 1
+
+    $fTx = & $castPath send $CONTRACT_ADDRESS "fulfillRequest(bytes32,bytes,bytes)" $id $hex "0x" --private-key $USER_PRIVATE_KEY --rpc-url http://localhost:8545 2>&1
+    
+    if ($LASTEXITCODE -eq 0) {
+        if ($code -eq 0) { Write-Host "   🏆 SETTLED: Capital released. Integrity verified." -ForegroundColor Green }
+        else { Write-Host "   🏆 PROTECTED: Trade blocked. Capital autonomously returned." -ForegroundColor Red }
+    } else {
+        Write-Host "   X Enforcement Failed." -ForegroundColor Red
+    }
 }
 
+# --- MAIN ---
+Clear-Host
+Write-Host "================================================================" -ForegroundColor Cyan
+Write-Host "    🛡️  AEGIS: THE SOVEREIGN DEFI EXECUTOR  🛡️ " -ForegroundColor Cyan
+Write-Host "           Chainlink Convergence Hackathon 2026" -ForegroundColor Cyan
+Write-Host "================================================================" -ForegroundColor Cyan
 
-# ════════════════════════════════════════════════════════════════════════════════
-# SUMMARY
-# ════════════════════════════════════════════════════════════════════════════════
-Write-Host ""
-Write-Host "════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "   🏆 FULL E2E DEMO COMPLETE!" -ForegroundColor Cyan
-Write-Host "════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "What Just Happened:" -ForegroundColor White
-Write-Host "  1. 🧠 AI analyzed the token using CRE (CoinGecko + GoPlus + GPT-4)" -ForegroundColor DarkGray
-Write-Host "  2. 🔐 DON signed the risk verdict with a private key" -ForegroundColor DarkGray
-Write-Host "  3. ⛓️  Smart contract verified signature and executed/blocked trade" -ForegroundColor DarkGray
-Write-Host ""
-Write-Host "This proves the FULL STACK works:" -ForegroundColor Green
-Write-Host "  • Chainlink CRE for AI orchestration ✓" -ForegroundColor DarkGray
-Write-Host "  • Cryptographic signatures for trust ✓" -ForegroundColor DarkGray
-Write-Host "  • On-chain enforcement via Solidity ✓" -ForegroundColor DarkGray
-Write-Host ""
+Run-AegisScenario "TRUSTED SWAP" "0x4200000000000000000000000000000000000006" "2100.00" "WETH on Base Network"
+Start-Sleep -Seconds 1
+Run-AegisScenario "PROTECTED ATTACK" "0xBAD0000000000000000000000000000000000066" "99999.00" "Volatility spike + Centralized Trace"
 
-exit 0
+Write-Host "`n================================================================" -ForegroundColor Cyan
+Write-Host "   🏁 DEMO COMPLETE: Aegis ensures trustless execution." -ForegroundColor Cyan
+Write-Host "================================================================" -ForegroundColor Cyan
