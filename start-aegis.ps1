@@ -4,10 +4,10 @@
 Write-Host "🚀 Starting Aegis Demo Stack..." -ForegroundColor Cyan
 
 # Start Eliza Backend (Port 3011) - uses dev:server for the API
-Start-Process powershell -ArgumentList "-NoProfile", "-NoExit", "-Command", "cd '$PSScriptRoot\eliza'; Write-Host '🤖 Eliza Backend (Port 3011)' -ForegroundColor Green; npm run dev:server"
+Start-Process powershell -ArgumentList "-NoProfile", "-NoExit", "-Command", "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; cd '$PSScriptRoot\eliza'; Write-Host '🤖 Eliza Backend (Port 3011)' -ForegroundColor Green; npm run dev:server"
 
 # Start Aegis Web Frontend (Port 3005)
-Start-Process powershell -ArgumentList "-NoProfile", "-NoExit", "-Command", "cd '$PSScriptRoot\aegis-web'; Write-Host '🌐 Aegis Web (Port 3005)' -ForegroundColor Magenta; npm run dev -- -p 3005"
+Start-Process powershell -ArgumentList "-NoProfile", "-NoExit", "-Command", "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; cd '$PSScriptRoot\aegis-web'; Write-Host '🌐 Aegis Web (Port 3005)' -ForegroundColor Magenta; npm run dev -- -p 3005"
 
 Write-Host ""
 Write-Host "✅ Aegis Demo is starting!" -ForegroundColor Green
