@@ -97,7 +97,14 @@ const VerdictHeader = ({ type }: { type: 'APPROVE' | 'DENIED' | 'REJECT' }) => {
     );
 };
 
-type ScanningStatus = 'idle' | 'detecting' | 'scanning' | 'analyzing' | 'complete';
+type ScanningStatus = 'idle' | 'detecting' | 'scanning' | 'analyzing' | 'complete' | 'locked' | 'settled';
+
+interface LogEntry {
+    id: string;
+    timestamp: string;
+    level: 'INFO' | 'WARN' | 'ERROR' | 'CONSENSUS' | 'AI';
+    message: string;
+}
 
 export default function Chat({ onIntent }: ChatProps) {
     const [input, setInput] = useState('');
@@ -105,9 +112,27 @@ export default function Chat({ onIntent }: ChatProps) {
     const [scanningStatus, setScanningStatus] = useState<ScanningStatus>('idle');
     const [activeSteps, setActiveSteps] = useState<boolean[]>([false, false, false]); // [Market, Security, AI]
     const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false]);
-    const [messages, setMessages] = useState<Message[]>([
-        { id: '1', role: 'agent', content: "Systems Online. Aegis Protocol Active. Awaiting Command." },
+    const [logs, setLogs] = useState<LogEntry[]>([
+        { id: '1', timestamp: new Date().toLocaleTimeString(), level: 'INFO', message: 'AEGIS DISPATCHER INITIALIZED' },
+        { id: '2', timestamp: new Date().toLocaleTimeString(), level: 'INFO', message: 'VAULT ENFORCEMENT CORE: ACTIVE' },
     ]);
+    const [messages, setMessages] = useState<Message[]>([
+        { id: '1', role: 'agent', content: "Dispatcher Online. Secure Uplink Established. Awaiting Intent." },
+    ]);
+    const terminalEndRef = useRef<HTMLDivElement>(null);
+
+    const addLog = (level: LogEntry['level'], message: string) => {
+        setLogs(prev => [...prev.slice(-49), {
+            id: Date.now().toString() + Math.random(),
+            timestamp: new Date().toLocaleTimeString(),
+            level,
+            message
+        }]);
+    };
+
+    useEffect(() => {
+        terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [logs]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -147,25 +172,42 @@ export default function Chat({ onIntent }: ChatProps) {
 
         if (isRiskQuery) {
             setScanningStatus('detecting');
+            addLog('INFO', `INTERCEPTED INTENT: ${userMsg.slice(0, 30)}...`);
+            addLog('WARN', 'SECURE ESCROW INITIALIZING...');
             setCompletedSteps([false, false, false]);
             await new Promise(resolve => setTimeout(resolve, 800));
 
             // Simultaneous start - Market & Security
             setScanningStatus('scanning');
+            addLog('INFO', 'DISPATCHING ORACLE REQUEST (ID: 0xef85...)');
             setActiveSteps([true, true, false]);
 
             // Staggered completion
-            setTimeout(() => setCompletedSteps(prev => [true, prev[1], prev[2]]), 1500); // Market done
-            setTimeout(() => setCompletedSteps(prev => [prev[0], true, prev[2]]), 2200); // Security done
+            setTimeout(() => {
+                setCompletedSteps(prev => [true, prev[1], prev[2]]);
+                addLog('INFO', 'COINGECKO: MARKET SIGNAL ACQUIRED | PRICE: $2501.20');
+            }, 1000);
+
+            setTimeout(() => {
+                setCompletedSteps(prev => [prev[0], true, prev[2]]);
+                addLog('INFO', 'GOPLUS: SECURITY SIIGNAL ACQUIRED | HONEYPOT: FALSE');
+            }, 1800);
 
             // AI Handoff
             setTimeout(() => {
                 setActiveSteps([true, true, true]);
                 setScanningStatus('analyzing');
-            }, 2300);
+                addLog('AI', 'GPT-4o: INGESTING TELEMETRY VECTOR...');
+            }, 2000);
 
             // AI Sub-tasks simulation (just visual timing)
-            await new Promise(resolve => setTimeout(resolve, 4500)); // AI thinking time
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            addLog('AI', 'CONSTRUCTING FORENSIC BITMASK...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            addLog('CONSENSUS', 'DON: REACHING DETERMINISTIC AGREEMENT...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            addLog('CONSENSUS', 'JUDGE VERDICT: RISK_CODE(0)');
+
             setCompletedSteps([true, true, true]); // All done
 
             const pushScanReport = () => {
@@ -179,6 +221,7 @@ export default function Chat({ onIntent }: ChatProps) {
 
             if (isScamToken) {
                 pushScanReport();
+                addLog('ERROR', 'THREAT DETECTED: UNTRUSTED_CONTRACT_SIGNATURE');
                 setMessages(prev => [...prev, {
                     id: Date.now().toString(),
                     role: 'agent',
@@ -193,7 +236,8 @@ export default function Chat({ onIntent }: ChatProps) {
             }
 
             pushScanReport();
-            setScanningStatus('idle'); // <--- Fix: Revert to simple loader to avoid duplicate checklist
+            addLog('INFO', 'VAULT: RELEASING ASSETS. SETTLED.');
+            setScanningStatus('idle');
         }
 
         try {
@@ -242,190 +286,240 @@ export default function Chat({ onIntent }: ChatProps) {
     };
 
     return (
-        <Card className="w-full bg-black/50 border-white/10 backdrop-blur-xl h-[700px] flex flex-col overflow-hidden shadow-2xl shadow-purple-500/20">
-            <CardHeader className="border-b border-white/5 bg-black/40 py-4">
-                <div className="flex justify-between items-center">
-                    <CardTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400 flex items-center gap-2">
-                        <div className="relative">
-                            <Shield className={cn(
-                                "w-6 h-6 transition-all duration-500",
-                                scanningStatus !== 'idle' ? "text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" : "text-purple-400"
-                            )} />
-                            {scanningStatus !== 'idle' && (
-                                <motion.div
-                                    animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                    className="absolute inset-0 bg-cyan-400/20 rounded-full -z-10"
-                                />
-                            )}
-                        </div>
-                        AEGIS MISSION CONTROL
+        <div className="w-full flex gap-4 h-[800px]">
+            {/* LEFT PANE: DISPATCHER CHAT */}
+            <Card className="w-1/4 bg-black/60 border-white/5 backdrop-blur-xl flex flex-col overflow-hidden shadow-xl border-r border-purple-500/10">
+                <CardHeader className="py-3 border-b border-white/5 bg-purple-500/5">
+                    <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-purple-400 flex items-center gap-2">
+                        <Activity className="w-3 h-3" /> Dispatcher
                     </CardTitle>
-                </div>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col p-0 overflow-hidden relative">
-                <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-purple-900/50 scrollbar-track-transparent">
-                    <AnimatePresence>
-                        {messages.map((m) => (
+                </CardHeader>
+                <CardContent className="flex-1 flex flex-col p-0 overflow-hidden relative">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-none">
+                        <AnimatePresence>
+                            {messages.map((m) => (
+                                <motion.div
+                                    key={m.id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="flex flex-col gap-1"
+                                >
+                                    <div className={cn(
+                                        "p-3 rounded-xl text-xs leading-relaxed",
+                                        m.role === 'agent'
+                                            ? "bg-purple-500/10 border border-purple-500/20 text-purple-100/90 rounded-tl-none"
+                                            : "bg-zinc-800/50 border border-white/5 text-zinc-400 rounded-tr-none italic self-end ml-4"
+                                    )}>
+                                        {m.isScanReport ? "Forensic Audit Executed." : m.content.replace(/\[AEGIS_(APPROVE|DENIED|REJECT)\]\s*/g, '').slice(0, 100) + (m.content.length > 100 ? "..." : "")}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                        <div ref={messagesEndRef} />
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* CENTER PANE: VAULT STATUS & INTERACTION */}
+            <Card className="flex-1 bg-black/40 border-white/10 backdrop-blur-2xl flex flex-col overflow-hidden shadow-2xl relative group">
+                {/* VAULT GLOW EFFECT */}
+                <div className={cn(
+                    "absolute inset-0 opacity-10 transition-all duration-1000",
+                    scanningStatus === 'idle' ? "bg-purple-500/5" :
+                        scanningStatus === 'scanning' ? "bg-amber-500/10" :
+                            scanningStatus === 'analyzing' ? "bg-cyan-500/10" : "bg-red-500/5"
+                )} />
+
+                <CardHeader className="border-b border-white/5 bg-black/40 py-6 relative z-10">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="relative">
+                                <Shield className={cn(
+                                    "w-10 h-10 transition-all duration-700",
+                                    scanningStatus !== 'idle' ? "text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.8)]" : "text-purple-500"
+                                )} />
+                                {scanningStatus !== 'idle' && (
+                                    <motion.div
+                                        animate={{ scale: [1, 2, 1], opacity: [0.3, 0, 0.3] }}
+                                        transition={{ duration: 3, repeat: Infinity }}
+                                        className="absolute inset-0 bg-cyan-400/30 rounded-full -z-10"
+                                    />
+                                )}
+                            </div>
+                            <div className="flex flex-col">
+                                <CardTitle className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-zinc-500 tracking-tighter">
+                                    AEGIS VAULT
+                                </CardTitle>
+                                <span className="text-[10px] font-mono text-zinc-500 tracking-[0.4em] uppercase">Sovereign Enforcer</span>
+                            </div>
+                        </div>
+
+                        {/* ANALOG VAULT STATE */}
+                        <div className="flex items-center gap-6 w-full justify-center py-2">
+                            <div className="flex flex-col items-center gap-1">
+                                <div className={cn("w-2 h-2 rounded-full", scanningStatus === 'idle' ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,1)]" : "bg-zinc-800")} />
+                                <span className="text-[8px] font-bold opacity-40">READY</span>
+                            </div>
+                            <div className="w-12 h-[1px] bg-white/5" />
+                            <div className="flex flex-col items-center gap-1">
+                                <div className={cn("w-2 h-2 rounded-full", (scanningStatus === 'scanning' || scanningStatus === 'analyzing') ? "bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,1)]" : "bg-zinc-800")} />
+                                <span className="text-[8px] font-bold opacity-40">AUDIT</span>
+                            </div>
+                            <div className="w-12 h-[1px] bg-white/5" />
+                            <div className="flex flex-col items-center gap-1">
+                                <div className={cn("w-2 h-2 rounded-full", (scanningStatus === 'complete' || scanningStatus === 'settled') ? "bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,1)]" : "bg-zinc-800")} />
+                                <span className="text-[8px] font-bold opacity-40">SECURE</span>
+                            </div>
+                        </div>
+
+                        <div className={cn(
+                            "px-6 py-2 rounded-full text-xs font-black uppercase tracking-[0.3em] border flex items-center gap-3 transition-all duration-700",
+                            scanningStatus === 'idle' && "bg-zinc-500/5 border-zinc-500/20 text-zinc-500",
+                            scanningStatus === 'detecting' && "bg-zinc-500/5 border-zinc-500/20 text-zinc-500",
+                            scanningStatus === 'scanning' && "bg-amber-500/10 border-amber-500/40 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.1)]",
+                            scanningStatus === 'analyzing' && "bg-cyan-500/10 border-cyan-500/40 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.1)]",
+                        )}>
+                            <div className={cn(
+                                "w-2 h-2 rounded-full",
+                                scanningStatus === 'idle' ? "bg-zinc-600" : (scanningStatus === 'scanning' || scanningStatus === 'analyzing') ? "bg-amber-500" : "bg-cyan-400"
+                            )} />
+                            {
+                                (scanningStatus === 'idle') ? "VAULT STANDBY" :
+                                    (scanningStatus === 'detecting') ? "LOCKING ASSETS..." :
+                                        (scanningStatus === 'scanning') ? "DON: INBOUND SIGNALS" :
+                                            (scanningStatus === 'analyzing') ? "AI: FORENSIC SYNTHESIS" : "VERIFIED SAFE"
+                            }
+                        </div>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="flex-1 flex flex-col p-6 overflow-hidden relative z-10">
+                    <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8">
+                        {scanningStatus === 'idle' ? (
                             <motion.div
-                                key={m.id}
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                transition={{ duration: 0.3 }}
-                                className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex flex-col items-center gap-6"
                             >
-                                <div className={cn(
-                                    "max-w-[85%] p-4 rounded-2xl relative overflow-hidden backdrop-blur-md",
-                                    m.role === 'agent'
-                                        ? "bg-zinc-900/80 border border-purple-500/30 text-zinc-100 rounded-tl-none shadow-[0_0_15px_rgba(168,85,247,0.1)]"
-                                        : "bg-indigo-600/20 border border-indigo-500/30 text-white rounded-tr-none",
-                                    m.isVerdict && "border-cyan-500/50 bg-cyan-900/10 shadow-[0_0_20px_rgba(6,182,212,0.15)]"
-                                )}>
-                                    {m.isScanReport ? (
-                                        <div className="flex flex-col gap-2 min-w-[280px]">
-                                            <div className="flex items-center gap-2 mb-2 text-purple-400 text-xs font-mono uppercase">
-                                                <Brain className="w-3 h-3" /> Forensic Scan Complete
-                                            </div>
-                                            <InlinePipelineStep active={true} completed={true} icon={<Activity className="w-4 h-4" />} label="MARKET DATA (CoinGecko)" />
-                                            <InlinePipelineStep active={true} completed={true} icon={<Shield className="w-4 h-4" />} label="SECURITY AUDIT (GoPlus)" />
-                                            <InlinePipelineStep active={true} completed={true} icon={<Brain className="w-4 h-4" />} label="AI FORENSIC SCAN (GPT-4o)" />
-                                            <div className="ml-8 flex flex-col gap-1 border-l-2 border-green-500/20 pl-4 py-2 opacity-70">
-                                                <div className="flex items-center gap-2 text-[10px] text-green-400"><Check className="w-3 h-3" /> Impersonation Scan</div>
-                                                <div className="flex items-center gap-2 text-[10px] text-green-400"><Check className="w-3 h-3" /> Wash Trading Analysis</div>
-                                                <div className="flex items-center gap-2 text-[10px] text-green-400"><Check className="w-3 h-3" /> Deployer Profiling</div>
-                                                <div className="flex items-center gap-2 text-[10px] text-green-400"><Check className="w-3 h-3" /> Metadata Review</div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {m.role === 'agent' && (
-                                                <div className={cn(
-                                                    "absolute top-0 left-0 w-1 h-full",
-                                                    m.isVerdict ? "bg-cyan-500/50" : "bg-purple-500/50"
-                                                )} />
-                                            )}
-
-                                            {/* Special Formatting for Verdict Headers */}
-                                            {m.role === 'agent' && (
-                                                <>
-                                                    {m.content.includes("[AEGIS_APPROVE]") && <VerdictHeader type="APPROVE" />}
-                                                    {(m.content.includes("[AEGIS_DENIED]") || m.content.includes("[AEGIS_REJECT]")) && <VerdictHeader type="DENIED" />}
-                                                </>
-                                            )}
-
-                                            {/* Special Formatting for Anomaly Warning (Flag 512) */}
-                                            {m.content.includes("Flag 512") || m.content.includes("ANOMALY") ? (
-                                                <div className="flex flex-col gap-2">
-                                                    <div className="flex items-center gap-2 text-amber-500 font-bold uppercase tracking-wider text-sm">
-                                                        <AlertTriangle className="w-4 h-4" /> Manual Review Suggested
-                                                    </div>
-                                                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-amber-100/90">
-                                                        {m.content.replace(/\[AEGIS_(APPROVE|DENIED|REJECT)\]\s*/g, '')}
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                                                    {m.content.replace(/\[AEGIS_(APPROVE|DENIED|REJECT)\]\s*/g, '')}
-                                                </p>
-                                            )}
-
-                                            {m.isVerdict && (
-                                                <div className="mt-2 flex items-center justify-between gap-4">
-                                                    <div className="flex items-center gap-2 text-[10px] text-cyan-400/70 font-mono uppercase tracking-tighter">
-                                                        <Lock className="w-3 h-3" /> Signed by Aegis DON v1.0
-                                                    </div>
-                                                    {(m.content.includes("REJECT") || m.content.includes("DENIED")) && (
-                                                        <button
-                                                            onClick={() => {
-                                                                const tweetText = "🚨 Aegis Risk Oracle just blocked a potential scam! 🛡️ Always verify before you swap. #AegisProtocol #Chainlink #DEFI @Chainlink";
-                                                                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank');
-                                                            }}
-                                                            className="flex items-center gap-1.5 px-2 py-1 rounded bg-[#1DA1F2]/20 hover:bg-[#1DA1F2]/30 text-[#1DA1F2] text-[10px] font-bold transition-colors border border-[#1DA1F2]/30"
-                                                        >
-                                                            <Twitter className="w-3 h-3" />
-                                                            WARN OTHERS
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
+                                <div className="p-8 rounded-full bg-white/5 border border-white/5 relative group-hover:border-purple-500/20 transition-colors">
+                                    <Lock className="w-16 h-16 text-zinc-700 group-hover:text-zinc-500 transition-colors" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-bold text-zinc-400">VAULT ENGAGED</h3>
+                                    <p className="text-zinc-600 text-sm max-w-xs">Waiting for Dispatcher intent. Capital protection is active.</p>
                                 </div>
                             </motion.div>
-                        ))}
-                    </AnimatePresence>
-
-                    {(isLoading || scanningStatus !== 'idle') && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flex justify-start"
-                        >
-                            <div className="bg-zinc-900/50 border border-purple-500/20 p-4 rounded-2xl rounded-tl-none flex flex-col gap-3 min-w-[280px]">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
-                                    <span className="text-[10px] font-mono text-purple-400 uppercase ml-2">
-                                        {scanningStatus === 'detecting' && "Detecting Intent..."}
-                                        {scanningStatus === 'scanning' && "Retrieving Oracle Signals..."}
-                                        {scanningStatus === 'analyzing' && "Synthesizing with GPT-4o-mini..."}
-                                        {scanningStatus === 'idle' && isLoading && "Processing Command..."}
-                                    </span>
-                                </div>
-                                {scanningStatus !== 'idle' && (
-                                    <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-white/5">
+                        ) : (
+                            <div className="w-full max-w-md space-y-8">
+                                <div className="bg-zinc-900/50 border border-white/5 p-6 rounded-3xl backdrop-blur-xl">
+                                    <div className="flex flex-col gap-6">
                                         <InlinePipelineStep active={activeSteps[0]} completed={completedSteps[0]} icon={<Activity className="w-4 h-4" />} label="MARKET DATA (CoinGecko)" />
                                         <InlinePipelineStep active={activeSteps[1]} completed={completedSteps[1]} icon={<Shield className="w-4 h-4" />} label="SECURITY AUDIT (GoPlus)" />
                                         <InlinePipelineStep active={activeSteps[2]} completed={completedSteps[2]} icon={<Brain className="w-4 h-4" />} label="AI FORENSIC SCAN (GPT-4o)" />
-
-                                        {activeSteps[2] && !completedSteps[2] && (
-                                            <motion.div
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                className="ml-8 flex flex-col gap-1 border-l-2 border-cyan-500/20 pl-4 py-2"
-                                            >
-                                                <SubTask label="Checking Impersonation..." delay={0} />
-                                                <SubTask label="Analyzing Volume/Liquidity..." delay={0.5} />
-                                                <SubTask label="Profiling Deployer..." delay={1} />
-                                                <SubTask label="Scanning Metadata..." delay={1.5} />
-                                            </motion.div>
-                                        )}
                                     </div>
+                                </div>
+
+                                {activeSteps[2] && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex flex-col gap-2 p-4 bg-cyan-500/5 border border-cyan-500/20 rounded-2xl"
+                                    >
+                                        <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest text-left">Internal Reasoning Matrix:</span>
+                                        <div className="flex flex-wrap gap-2 mt-1">
+                                            <span className="px-2 py-1 rounded bg-cyan-500/10 text-[8px] text-cyan-300 font-bold border border-cyan-500/10">#HoneypotAnalysis</span>
+                                            <span className="px-2 py-1 rounded bg-cyan-500/10 text-[8px] text-cyan-300 font-bold border border-cyan-500/10">#WashTrading</span>
+                                            <span className="px-2 py-1 rounded bg-cyan-500/10 text-[8px] text-cyan-300 font-bold border border-cyan-500/10">#DevClustering</span>
+                                            <span className="px-2 py-1 rounded bg-cyan-500/10 text-[8px] text-cyan-300 font-bold border border-cyan-500/10">#SentimentVector</span>
+                                        </div>
+                                    </motion.div>
                                 )}
                             </div>
-                        </motion.div>
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
+                        )}
+                    </div>
 
-                <div className="p-4 bg-black/40 border-t border-white/5 relative z-20">
-                    <form onSubmit={handleSubmit} className="flex items-center gap-4">
-                        <Input
-                            ref={inputRef}
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            placeholder="Type a command or query..."
-                            className="flex-1 bg-zinc-950/50 border-purple-500/30 focus-visible:ring-purple-500/50 text-white placeholder:text-zinc-500 h-14 rounded-xl"
-                            disabled={isLoading}
-                        />
-                        <Button
-                            borderRadius="1.75rem"
-                            className="bg-white dark:bg-slate-900 text-black dark:text-white border-neutral-200 dark:border-slate-800 flex items-center justify-center p-0"
-                            type="submit"
-                            disabled={isLoading}
-                            containerClassName="h-14 w-14 shadow-[0_0_15px_rgba(168,85,247,0.3)] hover:shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-shadow"
-                        >
-                            {scanningStatus !== 'idle' ? (
-                                <Loader2 className="w-6 h-6 animate-spin text-cyan-400" />
-                            ) : (
-                                <ArrowRight className="w-6 h-6" />
-                            )}
-                        </Button>
-                    </form>
-                </div>
-            </CardContent>
-        </Card>
+                    <div className="pt-6 border-t border-white/5 relative z-20">
+                        <form onSubmit={handleSubmit} className="flex items-center gap-4">
+                            <Input
+                                ref={inputRef}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder="State your intent... (e.g. 'Swap 1 ETH for PEPE')"
+                                className="flex-1 bg-zinc-950/80 border-purple-500/30 focus-visible:ring-purple-500/50 text-white placeholder:text-zinc-600 h-16 rounded-2xl text-lg font-medium tracking-tight"
+                                disabled={isLoading}
+                            />
+                            <Button
+                                borderRadius="1.5rem"
+                                className="bg-white dark:bg-zinc-100 text-black font-bold flex items-center justify-center p-0"
+                                type="submit"
+                                disabled={isLoading}
+                                containerClassName="h-16 w-16 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all"
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="w-8 h-8 animate-spin text-black" />
+                                ) : (
+                                    <ArrowRight className="w-8 h-8" />
+                                )}
+                            </Button>
+                        </form>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* RIGHT PANE: ROLLING TERMINAL LOGS */}
+            <Card className="w-1/4 bg-zinc-950 border-white/5 flex flex-col overflow-hidden shadow-2xl relative">
+                {/* MATRX NOISE EFFECT */}
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
+
+                <CardHeader className="py-3 border-b border-white/5 flex flex-row items-center justify-between bg-zinc-900/50">
+                    <CardTitle className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500 flex items-center gap-2">
+                        <Zap className="w-3 h-3 text-cyan-500/50" /> System Logs
+                    </CardTitle>
+                    <div className="flex gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500/20" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500/20" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500/20" />
+                    </div>
+                </CardHeader>
+                <CardContent className="flex-1 flex flex-col p-4 overflow-hidden font-mono text-[10px]">
+                    <div className="flex-1 overflow-y-auto space-y-2 scrollbar-none opacity-80">
+                        <AnimatePresence>
+                            {logs.map((log) => (
+                                <motion.div
+                                    key={log.id}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="flex gap-2 group"
+                                >
+                                    <span className="text-zinc-700 select-none">[{log.timestamp}]</span>
+                                    <span className={cn(
+                                        "font-bold",
+                                        log.level === 'INFO' && "text-zinc-400",
+                                        log.level === 'WARN' && "text-amber-500",
+                                        log.level === 'ERROR' && "text-red-500",
+                                        log.level === 'CONSENSUS' && "text-cyan-400",
+                                        log.level === 'AI' && "text-purple-400",
+                                    )}>{log.level}:</span>
+                                    <span className="text-zinc-400 group-hover:text-zinc-200 transition-colors whitespace-pre-wrap">{log.message}</span>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                        <div ref={terminalEndRef} />
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-2">
+                        <div className="flex justify-between items-center text-[8px] text-zinc-600 font-bold tracking-widest">
+                            <span>NETWORK: BASE_SEPOLIA</span>
+                            <span className="text-green-500/50">● ONLINE</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[8px] text-zinc-600 font-bold tracking-widest">
+                            <span>ORACLE: AEGIS_DON_01</span>
+                            <span className="text-green-500/50">● CONNECTED</span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
     );
 }
 

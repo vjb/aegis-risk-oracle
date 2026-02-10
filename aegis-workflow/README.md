@@ -1,44 +1,57 @@
-# 🧠 Aegis Workflow (The Technical Core)
+# 🧠 Aegis Dispatcher: The Digital Judge
 
-This directory contains the **Chainlink Runtime Environment (CRE)** orchestration logic. It acts as the "Orchestrator" that bridges real-world security data, AI forensics, and on-chain execution.
+> **"Consensus-Driven Forensics. Deterministic Execution."**
 
-## 🔑 Core Logic Implementation
+This directory contains the **Chainlink Runtime Environment (CRE)** logic. It acts as the "Impartial Judge" that bridges real-world security metadata and AI forensics into a single, verifiable bitmask for the Aegis Vault.
 
-### 1. Deterministic "Lock-In"
-We achieve consensus on AI outputs using three primary levers:
-- **Temperature: 0**: Forces the LLM to select the most probable token, eliminating stylistic variance.
-- **Seed: 42**: Uses OpenAI's consistency features to ensure deterministic sampling across nodes.
-- **Bitmask Normalization**: The LLM output is parsed into a **Bitmask (uint256)**. Nodes don't compare the reasoning text; they only reach consensus on the integer flags and the final boolean verdict.
+---
 
-### 2. The Risk Bitmask Protocol (LLM on Rails)
-Risks are represented as binary flags, allowing for gas-efficient on-chain evaluation. The bitmask is signed by the DON and verified by the vault. This keeps the LLM "on the rails" by restricting its output to a defined security matrix.
+## 🏛️ The Role of the DON
 
-| Bit | Value | Flag | Logic |
+In the Aegis protocol, the Decentralized Oracle Network (DON) is the **Judge**. It doesn't just "report" data; it **performs forensic synthesis**.
+1. **Contract-Initiated**: Triggered automatically by the `AegisVault.sol` request.
+2. **Atomic Execution**: All logic runs in a single, trust-minimized workflow.
+3. **Deterministic Consensus**: Multiple nodes must agree on the exact **Risk Bitmask** to settle the trade.
+
+---
+
+## 🧠 Deterministic Forensics (The Split-Brain)
+
+To run non-deterministic AI on a consensus network, Aegis uses a **Split-Brain Architecture**:
+- **Right Brain (AI)**: Analyzes fuzzy data (Sentiment, Wash Trading, Developer History).
+- **Left Brain (Logic)**: Normalizes outputs into a **Deterministic Bitmask (uint256)**.
+
+### ⛓️ Keeping AI "On the Rails"
+We enforce absolute determinism at the API and logic level:
+- **Temperature 0**: Flattens the probability distribution.
+- **Seed 42**: Ensures consistent sampling across different oracle nodes.
+- **Zero-Dependency Core**: No IPFS, No Pinata. The source code is passed **inline** for atomic, verifiable execution.
+
+---
+
+## 🕸️ The Risk Bitmask Protocol
+
+| Bit | Value | Flag | Forensic Indicator |
 | :--- | :--- | :--- | :--- |
-| 0 | 1 | `LIQUIDITY_WARN` | Liquidity < $50k or Volume/Liq ratio anomaly |
-| 1 | 2 | `VOLATILITY_WARN` | 24h price deviation > 10% |
-| 2 | 4 | `SUSPICIOUS_CODE` | Blacklisted functions or vulnerable patterns |
-| 3 | 8 | `OWNERSHIP_RISK` | Non-renounced or suspicious owner address |
-| 4 | 16 | `HONEYPOT_FAIL` | GoPlus confirmation of honeypot behavior |
-| 5 | 32 | `IMPERSONATION` | Metadata scan detects brand spoofing |
-| 6 | 64 | `WASH_TRADING` | Volume 24h > 5x Liquidity |
-| 7 | 128 | `DEPLOYER_RISK` | Suspicious history of the deployer address |
-| 8 | 256 | `PHISHING_SCAM` | Domain or contract metadata reflects scam patterns |
-| 9 | 512 | `AI_ANOMALY` | Special flag for LLM-detected fuzzy risks |
+| 0 | 1 | `LIQUIDITY` | Insufficient pool depth for safe trade |
+| 1 | 2 | `VOLATILITY` | Abnormal price deviation detected |
+| 2 | 4 | `SECURITY` | Malicious code patterns found in contract |
+| 3 | 8 | `OWNERSHIP` | Centralized control or non-renounced risks |
+| 4 | 16 | `SCAM` | GoPlus confirmation of honeypot behavior |
+| 5-9 | ... | ... | ... |
 
-### 3. Fail-Closed Resilience
-If any external API (CoinGecko, GoPlus) fails or returns an error, the system injects the `AI_ANOMALY` flag and defaults to `false` (REJECT). We never certify a trade if we are blind to the security telemetry.
+---
 
-## 💡 Developer Guide: WASM Constraints
-This workflow runs in the **Chainlink Runtime Environment (CRE)**, which uses a WASM-based execution engine (**Javy**).
-> [!IMPORTANT]
-> - **No Node.js Modules**: Native modules like `fs` or `crypto` are unavailable.
-> - **Custom Crypto**: Use the pure JavaScript implementations in `utils.ts` for hashing.
-> - **Payload Encoding**: Payloads must be **Base64 encoded** for HTTP transport.
+## 💡 Engineering Requirements
+
+- **No Remote Dependencies**: The workflow is self-contained. 
+- **Inline Logic**: To prevent man-in-the-middle attacks, the Vault passes the logic hash directly.
+- **WASM Performance**: optimized for the CRE (Chainlink Runtime Environment).
 
 ## 🧪 Simulation
-Verify the determinism and logic flow locally:
+Verify the consensus logic locally:
 ```bash
-# Run the consensus simulation
-bun run ../tests/simulate-consensus.ts
+node ./tests/hollywood-demo.js
 ```
+
+*Aegis: Forensic integrity signed by the DON ⚡*

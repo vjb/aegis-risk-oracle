@@ -1,17 +1,22 @@
-# 🤖 Aegis AI Agent (ElizaOS)
+# 🤖 Aegis Dispatcher: JARVIS for DeFi Security
 
-The Aegis AI Agent, built on the **ElizaOS** framework, acts as the primary user interface and conversational bridge to the Aegis Protocol.
+> **"Interpret the Intent. Construct the Shield."**
 
-## 🧠 AI Integration Logic
+The Aegis AI Agent, built on **ElizaOS**, is the **Dispatcher** of the Sovereign Vault protocol. It acts as the human-centric interface (JARVIS) that bridges user intent with the rigid enforcement of the Aegis Vault.
 
-Unlike the on-chain components, the agent provides a natural language interface for users to assess risks.
+---
 
-- **ElizaOS Framework**: A multi-agent framework that parses user intent and manages conversational state.
-- **OpenAI Tool Calling**: The agent uses GPT-4o to interpret queries. While it appears to perform real-time actions, it actually utilizes a "Tool/Action" interception pattern:
-    1. The model determines a user wants to check a token.
-    2. ElizaOS intercepts this "tool call."
-    3. The agent triggers the **Chainlink CRE Workflow** as the source of truth for security.
-- **Decoupled Architecture**: The frontend communicates with the agent via a dedicated API server. Note that while the UI visualizes these flows, the agent acts as an independent intent parser that can be integrated into Discord, Twitter (X), or Telegram.
+## 🧠 The Dispatcher Persona
+
+The Agent is no longer just a "security tool"—it is the specialized compliance architect that prepares the groundwork for the Vault.
+
+### Key Responsibilities:
+1. **Interpret Intent**: "User wants to swap 1.0 ETH for XYZ token."
+2. **Pre-Flight Soft Scan**: Performed off-chain to provide immediate warnings. *"Warning: That token has low liquidity. Are you sure you want to proceed?"*
+3. **Construct Transaction**: Prepares the `swap()` call for the `AegisVault.sol`. *"Initializing Secure Vault Transfer..."*
+4. **Explain the Verdict**: Translates the Vault's bitmask into human reasoning. *"The Vault rejected this trade. Reason: Honeypot Trap Detected (Flag 16)."*
+
+---
 
 ## 🚀 Setup & Launch
 
@@ -20,12 +25,19 @@ Unlike the on-chain components, the agent provides a natural language interface 
    npm install
    ```
 2. **Environment**:
-   Ensure your `.env` file in the root directory contains the `OPENAI_API_KEY`.
-3. **Start the Agent**:
+   Ensure `OPENAI_API_KEY` is in your `.env`.
+3. **Start the Dispatcher**:
    ```bash
-   # From the eliza/ directory
    npm run start --character="characters/aegis.character.json"
    ```
 
-## 💡 How ElizaOS Works
-ElizaOS uses a "Character" system to define personality and knowledge. In Aegis, the agent is tuned for DeFi security forensics. It doesn't just "talk"; it evaluates when to trigger the Aegis Oracle for a verifiable audit, ensuring that AI-driven advice is backed by decentralized consensus.
+---
+
+## 🏗️ Technical Architecture
+
+The Dispatcher uses a **Tool Interception Pattern**:
+- **Step 1**: AI detects a swap intent.
+- **Step 2**: ElizaOS triggers the pre-flight check logic.
+- **Step 3**: The agent hand-offs the execution to the **AegisVault.sol**, which initiates the forensic audit.
+
+*Aegis Dispatcher: Your compliant pilot in the DeFi frontier. 🤖🛡️*

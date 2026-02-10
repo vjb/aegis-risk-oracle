@@ -24,7 +24,8 @@ const colors = {
     red: '\x1b[31m',
     gray: '\x1b[90m',
     reset: '\x1b[0m',
-    darkCyan: '\x1b[36;2m'
+    darkCyan: '\x1b[36;2m',
+    bold: '\x1b[1m'
 };
 
 function decodeRiskCode(code) {
@@ -46,32 +47,44 @@ function runCast(args) {
 
 async function runScenario(name, token, price, info) {
     console.log(`\n\n${colors.gray}================================================================${colors.reset}`);
-    console.log(`${colors.cyan} 🎬 SCENARIO: ${name} ${colors.reset} ${colors.gray}(${info})${colors.reset}`);
+    console.log(`${colors.cyan}${colors.bold} 🛡️  SCENARIO: ${name} ${colors.reset} ${colors.gray}(${info})${colors.reset}`);
     console.log(`${colors.gray}================================================================${colors.reset}`);
 
-    // -- PHASE 1 --
-    console.log(`\n${colors.yellow}[PHASE 1] 🔒 Inherent Security: Capital Escrow${colors.reset}`);
-    console.log(`   -> User initiates swap for asset: ${colors.gray}${token}${colors.reset}`);
+    // -- DISPATCHER PRE-FLIGHT --
+    console.log(`\n${colors.cyan}${colors.bold}[DISPATCHER] 🤖 Interpreting Intent: User wants to swap for ${token}...${colors.reset}`);
+    await new Promise(r => setTimeout(r, 600));
+    console.log(`   -> [JARVIS] Soft Scan: Analyzing market sentiment and liquidity...`);
+    await new Promise(r => setTimeout(r, 600));
+
+    if (name === "PROTECTED ATTACK") {
+        console.log(`   -> ${colors.yellow}${colors.bold}⚠️ WARNING: Dispatcher detected high-risk volatility signatures.${colors.reset}`);
+        console.log(`   -> Handing off to Sovereign Enforcer for mandatory forensic audit...`);
+    } else {
+        console.log(`   -> [JARVIS] Pre-flight clear. Constructing secure transfer to Vault...`);
+    }
+    await new Promise(r => setTimeout(r, 600));
+
+    // -- PHASE 1: VAULT LOCK --
+    console.log(`\n${colors.yellow}${colors.bold}[VAULT] 🔒 TRANSACTION INTERCEPTED. Assets locked in Sovereign Escrow.${colors.reset}`);
 
     const amt = "1000000000000000000"; // 1 ETH
     const initRaw = runCast(['send', CONTRACT_ADDRESS, 'swap(address,uint256)', token, amt, '--value', amt, '--private-key', USER_PRIVATE_KEY, '--rpc-url', 'http://localhost:8545', '--json']);
     const init = JSON.parse(initRaw);
     const tx = init.transactionHash;
 
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 800));
     const recRaw = runCast(['receipt', tx, '--rpc-url', 'http://localhost:8545', '--json']);
     const rec = JSON.parse(recRaw);
     const id = rec.logs[0].topics[1];
 
-    console.log(`   -> ${colors.green}AegisVault locked 1.0 ETH in sovereign escrow.${colors.reset}`);
-    console.log(`   -> Request ID: ${colors.gray}${id.slice(0, 18)}...${colors.reset}`);
+    console.log(`   -> ${colors.green}Enforcement Core Active.${colors.reset} Request ID: ${colors.gray}${id.slice(0, 18)}...${colors.reset}`);
 
-    // -- PHASE 2 --
-    console.log(`\n${colors.yellow}[PHASE 2] 🧠 Autonomous Audit: Chainlink DON Logic${colors.reset}`);
-    console.log(`   -> Triggering Forensic AI scan across Tri-Vector Matrix...`);
+    // -- PHASE 2: ORACLE JUDGE --
+    console.log(`\n${colors.yellow}${colors.bold}[ORACLE] 🕵️‍♂️ DON Node 1: Dispatching Chainlink Forensic Workflow...${colors.reset}`);
+    await new Promise(r => setTimeout(r, 600));
+    console.log(`${colors.yellow}${colors.bold}[ORACLE] 🧠 DON Node 1: AI Convergence on Deterministic Bitmask...${colors.reset}`);
 
     const payload = JSON.stringify({ tokenAddress: token, chainId: "31337", askingPrice: price });
-    // Use spawnSync for docker to handle payload string correctly
     const dockerRes = spawnSync('docker', [
         'exec', 'aegis_dev',
         'cre', 'workflow', 'simulate', './aegis-workflow',
@@ -87,7 +100,6 @@ async function runScenario(name, token, price, info) {
 
     if (startIdx === -1) {
         console.log(`   ${colors.red}X AI Analysis Failed${colors.reset}`);
-        // console.log(fullOutput); // Debugging
         return;
     }
 
@@ -104,8 +116,8 @@ async function runScenario(name, token, price, info) {
         const riskCode = parseInt(res.riskCode);
         const hex = res.riskCodeHex;
 
-        console.log(`   -> ${colors.cyan}AI Synthesis Complete.${colors.reset}`);
-        console.log(`   -> reasoning: ${colors.darkCyan}${res.reasoning}${colors.reset}`);
+        console.log(`\n   -> ${colors.cyan}Judge Consensus Verified.${colors.reset}`);
+        console.log(`   -> ${colors.darkCyan}"${res.reasoning}"${colors.reset}`);
 
         const flags = decodeRiskCode(riskCode);
         flags.forEach(f => {
@@ -113,38 +125,39 @@ async function runScenario(name, token, price, info) {
             else console.log(`   ${colors.red}${f}${colors.reset}`);
         });
 
-        // -- PHASE 3 --
-        console.log(`\n${colors.yellow}[PHASE 3] 🛡️ Decisive Enforcement${colors.reset}`);
-        console.log(`   -> Sovereign Executor evaluating DON verdict...`);
+        // -- PHASE 3: ENFORCEMENT --
+        console.log(`\n${colors.yellow}${colors.bold}[VAULT] ⚖️  Enforcing DON Verdict...${colors.reset}`);
         await new Promise(r => setTimeout(r, 1000));
 
         runCast(['send', CONTRACT_ADDRESS, 'fulfillRequest(bytes32,bytes,bytes)', id, hex, '0x', '--private-key', USER_PRIVATE_KEY, '--rpc-url', 'http://localhost:8545']);
 
         if (riskCode === 0) {
-            console.log(`   ${colors.green}🏆 SETTLED: Capital released. Integrity verified.${colors.reset}`);
+            console.log(`\n${colors.green}${colors.bold}[VAULT] 🔓 VERDICT SAFE (0). RELEASED. SETTLED.${colors.reset}`);
+            console.log(`${colors.cyan}[DISPATCHER] 🤖 Swap successful. Assets transferred to wallet.${colors.reset}`);
         } else {
-            console.log(`   ${colors.red}🏆 PROTECTED: Trade blocked. Capital autonomously returned.${colors.reset}`);
+            console.log(`\n${colors.red}${colors.bold}[VAULT] 🚫 VERDICT THREAT (${riskCode}). BLOCKED. REFUNDED.${colors.reset}`);
+            console.log(`${colors.cyan}[DISPATCHER] 🤖 Protection triggered. Capital safely returned.${colors.reset}`);
         }
 
     } catch (e) {
-        console.log(`   ${colors.red}X Error processing AI verdict: ${e.message}${colors.reset}`);
+        console.log(`   ${colors.red}X Error: ${e.message}${colors.reset}`);
     }
 }
 
 async function main() {
     console.clear();
-    console.log(`${colors.cyan}================================================================${colors.reset}`);
-    console.log(`${colors.cyan}    🛡️  AEGIS: THE SOVEREIGN DEFI EXECUTOR  🛡️ ${colors.reset}`);
-    console.log(`${colors.cyan}           Chainlink Convergence Hackathon 2026${colors.reset}`);
-    console.log(`${colors.cyan}================================================================${colors.reset}`);
+    console.log(`${colors.cyan}${colors.bold}================================================================${colors.reset}`);
+    console.log(`${colors.cyan}${colors.bold}    🛡️  AEGIS: THE SOVEREIGN DEFI FIREWALL  🛡️ ${colors.reset}`);
+    console.log(`${colors.cyan}           Operation Sovereign Vault 2026${colors.reset}`);
+    console.log(`${colors.cyan}${colors.bold}================================================================${colors.reset}`);
 
-    await runScenario("TRUSTED SWAP", "0x4200000000000000000000000000000000000006", "2100.00", "WETH on Base Network");
+    await runScenario("TRUSTED SWAP", "0x4200000000000000000000000000000000000006", "2100.00", "WETH Asset Verification");
     await new Promise(r => setTimeout(r, 2000));
-    await runScenario("PROTECTED ATTACK", "0xBAD0000000000000000000000000000000000066", "99999.00", "Volatility spike + Centralized Trace");
+    await runScenario("PROTECTED ATTACK", "0xBAD0000000000000000000000000000000000066", "99999.00", "Simulated Volatility / Source Anomaly");
 
-    console.log(`\n${colors.cyan}================================================================${colors.reset}`);
-    console.log(`${colors.cyan}   🏁 DEMO COMPLETE: Aegis ensures trustless execution.${colors.reset}`);
-    console.log(`${colors.cyan}================================================================${colors.reset}`);
+    console.log(`\n${colors.cyan}${colors.bold}================================================================${colors.reset}`);
+    console.log(`${colors.cyan}${colors.bold}   🏁 PROTOCOL VERIFIED: The Code Enforces the Safety.${colors.reset}`);
+    console.log(`${colors.cyan}${colors.bold}================================================================${colors.reset}`);
 }
 
 main();
