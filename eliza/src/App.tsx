@@ -5,6 +5,7 @@ import WorkflowVisualizer from './components/WorkflowVisualizer';
 import ScanPipeline from './components/ScanPipeline';
 import AegisInput from './components/AegisInput';
 import SecurityFeed from './components/SecurityFeed';
+import TenderlyStatus from './components/TenderlyStatus';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function App() {
@@ -119,6 +120,11 @@ export default function App() {
                 <div className="p-4 border-b border-green-900/30 flex items-center justify-between">
                     <span className="text-xs text-green-600 tracking-widest uppercase">⚡ Dispatcher</span>
                     <span className="text-[10px] text-green-800 animate-pulse">● ONLINE</span>
+                </div>
+
+                {/* Tenderly Network Status */}
+                <div className="p-3 border-b border-purple-900/30">
+                    <TenderlyStatus />
                 </div>
 
                 <div className="flex-1 overflow-y-auto mb-4 scrollbar-hide px-2">
