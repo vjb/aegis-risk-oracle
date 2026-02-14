@@ -134,6 +134,29 @@ We force the AI to output specific bit flags. This ensures **determinism** acros
 
 ---
 
+## 🏆 Hackathon Tracks
+
+### 🌐 Tenderly Virtual TestNets
+
+Aegis utilizes **Tenderly Virtual TestNets** forked from Base Mainnet. This allows our CRE multi-model AI cluster to simulate live market data and security scans against **real on-chain token states and liquidity pools** without the latency or gas costs of a public testnet.
+
+**Why This Matters for Aegis:**
+- **Real Market State**: Our deterministic Left Brain logic (liquidity checks, price deviation) requires accurate, real-world data to function properly.
+- **Live Token Analysis**: When the Right Brain AI Cluster performs semantic analysis on smart contracts, it needs access to actual deployed contracts on Base Mainnet, not mock data.
+- **Zero Latency**: Tenderly's RPC endpoints provide instant access to forked mainnet state, crucial for real-time risk assessment before trade execution.
+- **Cost-Free Testing**: We can run hundreds of forensic scans against real tokens without spending actual gas.
+
+**Integration Details:**  
+All deployment and test scripts (`deploy-local.ps1`, `test-contract.ps1`, `run-full-flow.ps1`) are configured to use `$env:TENDERLY_RPC_URL`. Simply set your Tenderly Virtual TestNet Admin RPC URL:
+
+```powershell
+$env:TENDERLY_RPC_URL = "https://virtual.base.rpc.tenderly.co/YOUR_VIRTUAL_TESTNET_ID"
+```
+
+[🔗 View Live Tenderly Explorer Transactions Here](YOUR_LINK_HERE)
+
+---
+
 ## 🛠️ The Stack
 
 - **Smart Contract**: Solidity, Foundry, Anvil

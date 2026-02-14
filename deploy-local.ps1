@@ -7,20 +7,21 @@ if (-not (Test-Path $forgePath)) {
     Write-Error "Forge not found at $forgePath"
 }
 
-Write-Host "════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "   🔗 AEGIS LOCAL CHAIN DEPLOYMENT" -ForegroundColor Cyan
-Write-Host "════════════════════════════════════════════════════" -ForegroundColor Cyan
-
-# Check if Anvil is running
-$anvilProcess = Get-Process -Name "anvil" -ErrorAction SilentlyContinue
-if (-not $anvilProcess) {
-    Write-Host "`n⚠️  Anvil is not running. Starting Anvil..." -ForegroundColor Yellow
-    Start-Process "$env:USERPROFILE\.foundry\bin\anvil.exe"
-    Write-Host "   Waiting for Anvil to start..." -ForegroundColor DarkGray
-    Start-Sleep -Seconds 3
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🏆 TENDERLY VIRTUAL TESTNETS INTEGRATION
+# ═══════════════════════════════════════════════════════════════════════════════
+if ($env:TENDERLY_RPC_URL) {
+    $RPC_URL = $env:TENDERLY_RPC_URL
+    Write-Host "🌐 Using Tenderly Virtual TestNet: $RPC_URL" -ForegroundColor Cyan
+} else {
+    $RPC_URL = "http://localhost:8545"
+    Write-Host "⚠️  TENDERLY_RPC_URL not set. Falling back to local Anvil." -ForegroundColor Yellow
+    Write-Host "   For Tenderly integration, set: `$env:TENDERLY_RPC_URL='https://virtual.base.rpc.tenderly.co/YOUR_ID'" -ForegroundColor DarkGray
 }
 
-Write-Host "`n✅ Anvil running at http://localhost:8545" -ForegroundColor Green
+Write-Host "════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "   🔗 AEGIS DEPLOYMENT" -ForegroundColor Cyan
+Write-Host "════════════════════════════════════════════════════" -ForegroundColor Cyan
 
 # Hardcoded Keys to avoid variable expansion issues
 # key: 0xac09...
@@ -28,7 +29,7 @@ Write-Host "`n✅ Anvil running at http://localhost:8545" -ForegroundColor Green
 
 Write-Host "`n📋 Deployment Parameters:" -ForegroundColor Cyan
 Write-Host "   DON Owner: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" -ForegroundColor DarkGray
-Write-Host "   RPC URL: http://localhost:8545" -ForegroundColor DarkGray
+Write-Host "   RPC URL: $RPC_URL" -ForegroundColor DarkGray
 
 
 # Deploy Mock VRF Coordinator
@@ -36,7 +37,7 @@ Write-Host "`n🎲 Deploying MockVRFCoordinator..." -ForegroundColor Yellow
 $env:FOUNDRY_DISABLE_NIGHTLY_WARNING = "1"
 
 # We must capture the output to find the address
-$cmdMock = "& `"$forgePath`" create contracts/MockVRFCoordinator.sol:MockVRFCoordinator --broadcast --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+$cmdMock = "& `"$forgePath`" create contracts/MockVRFCoordinator.sol:MockVRFCoordinator --broadcast --rpc-url $RPC_URL --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 $mockVrfOutput = Invoke-Expression $cmdMock 2>&1
 
 # Parse address
@@ -60,7 +61,7 @@ Write-Host "`n🚀 Deploying AegisVault.sol..." -ForegroundColor Yellow
 # KeyHash: 0x79d3...
 # SubId: 1
 
-$cmdVault = "& `"$forgePath`" create contracts/AegisVault.sol:AegisVault --broadcast --rpc-url http://localhost:8545 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --constructor-args 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 $mockVrfAddress 0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15 1"
+$cmdVault = "& `"$forgePath`" create contracts/AegisVault.sol:AegisVault --broadcast --rpc-url $RPC_URL --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --constructor-args 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 $mockVrfAddress 0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15 1"
 
 $vaultOutput = Invoke-Expression $cmdVault 2>&1
 

@@ -1,5 +1,15 @@
 # Aegis End-To-End "Hollywood" Demo Script
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🏆 TENDERLY VIRTUAL TESTNETS INTEGRATION
+# ═══════════════════════════════════════════════════════════════════════════════
+if ($env:TENDERLY_RPC_URL) {
+    $RPC_URL = $env:TENDERLY_RPC_URL
+} else {
+    $RPC_URL = "http://localhost:8545"
+}
+
 $castPath = "cast"
 $CONTRACT_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"
 $USER_PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" 
@@ -40,11 +50,11 @@ function Run-AegisScenario([string]$Name, [string]$Token, [string]$Price, [strin
     Write-Host "   -> User initiates swap for asset: $Token" -ForegroundColor Gray
     
     $AMT = "1000000000000000000"
-    $init = & $castPath send $CONTRACT_ADDRESS "swap(address,uint256)" $Token $AMT --value $AMT --private-key $USER_PRIVATE_KEY --rpc-url http://localhost:8545 --json | ConvertFrom-Json
+    $init = & $castPath send $CONTRACT_ADDRESS "swap(address,uint256)" $Token $AMT --value $AMT --private-key $USER_PRIVATE_KEY --rpc-url $RPC_URL --json | ConvertFrom-Json
     $txHash = $init.transactionHash
     
     Start-Sleep -Seconds 1
-    $rec = & $castPath receipt $txHash --rpc-url http://localhost:8545 --json | ConvertFrom-Json
+    $rec = & $castPath receipt $txHash --rpc-url $RPC_URL --json | ConvertFrom-Json
     
     # Filter logs to find AegisVault event (ignoring MockVRF events)
     $id = $null
@@ -144,7 +154,7 @@ function Run-AegisScenario([string]$Name, [string]$Token, [string]$Price, [strin
     Write-Host "   -> Sovereign Executor evaluating DON verdict..." -ForegroundColor Gray
     Start-Sleep -Seconds 1
 
-    $fTx = & $castPath send $CONTRACT_ADDRESS "fulfillRequest(bytes32,bytes,bytes)" $id $hex "0x" --private-key $USER_PRIVATE_KEY --rpc-url http://localhost:8545 2>&1
+    $fTx = & $castPath send $CONTRACT_ADDRESS "fulfillRequest(bytes32,bytes,bytes)" $id $hex "0x" --private-key $USER_PRIVATE_KEY --rpc-url $RPC_URL 2>&1
     
     if ($LASTEXITCODE -eq 0) {
         if ($code -eq 0) { Write-Host "   🏆 SETTLED: Capital released. Integrity verified." -ForegroundColor Green }
