@@ -400,7 +400,7 @@ export default function Chat({ onIntent }: ChatProps) {
                                 disabled={isLoading}
                             />
                             <Button
-                                onClick={handleSend}
+                                onClick={handleSubmit}
                                 disabled={!input.trim() || isLoading}
                                 borderRadius="0.5rem"
                                 className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed h-10"
