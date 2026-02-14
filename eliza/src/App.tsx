@@ -5,6 +5,7 @@ import WorkflowVisualizer from './components/WorkflowVisualizer';
 import ScanPipeline from './components/ScanPipeline';
 import AegisInput from './components/AegisInput';
 import SecurityFeed from './components/SecurityFeed';
+import TenderlyStatus from './components/TenderlyStatus';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function App() {
@@ -110,15 +111,20 @@ export default function App() {
     const isLoading = isThinking || isProcessing;
 
     return (
-        <div className="h-screen bg-black text-green-500 font-mono grid grid-cols-4 overflow-hidden relative">
+        <div className="h-screen bg-black text-green-500 font-mono grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-hidden relative">
             {/* Background Effects */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/10 via-black to-black z-0 pointer-events-none" />
 
-            {/* LEFT PANE (25%): THE DISPATCHER */}
-            <div className="col-span-1 border-r border-green-900/30 bg-zinc-950/80 backdrop-blur-sm flex flex-col relative z-10">
+            {/* LEFT PANE (25%): THE DISPATCHER - On mobile: full width, collapsible */}
+            <div className="col-span-1 lg:col-span-1 border-r border-green-900/30 bg-zinc-950/80 backdrop-blur-sm flex flex-col relative z-10">
                 <div className="p-4 border-b border-green-900/30 flex items-center justify-between">
                     <span className="text-xs text-green-600 tracking-widest uppercase">⚡ Dispatcher</span>
                     <span className="text-[10px] text-green-800 animate-pulse">● ONLINE</span>
+                </div>
+
+                {/* Tenderly Network Status */}
+                <div className="p-3 border-b border-purple-900/30">
+                    <TenderlyStatus />
                 </div>
 
                 <div className="flex-1 overflow-y-auto mb-4 scrollbar-hide px-2">
@@ -138,8 +144,8 @@ export default function App() {
                 </div>
             </div>
 
-            {/* CENTER PANE (50%): THE VAULT (Hero Section) */}
-            <div className="col-span-2 flex flex-col h-full relative z-10 p-6 gap-6">
+            {/* CENTER PANE (50%): THE VAULT (Hero Section) - On mobile: full width */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-2 flex flex-col h-full relative z-10 p-4 md:p-6 gap-4 md:gap-6">
 
                 {/* Upper: Pipeline */}
                 <div className="h-1/3 min-h-[250px] bg-black/40 border border-white/10 rounded-xl p-6 relative overflow-hidden flex flex-col">
@@ -186,8 +192,8 @@ export default function App() {
                 </div>
             </div>
 
-            {/* RIGHT PANE (25%): SYSTEM LOGS (The Matrix) */}
-            <div className="col-span-1 border-l border-green-900/30 bg-black flex flex-col relative z-20">
+            {/* RIGHT PANE (25%): SYSTEM LOGS (The Matrix) - On mobile: full width */}
+            <div className="col-span-1 lg:col-span-1 border-l border-green-900/30 bg-black flex flex-col relative z-20">
                 <div className="p-3 border-b border-green-900/30 bg-zinc-900/50">
                     <span className="text-xs text-green-600 tracking-widest uppercase">Encryption Layer // Logs</span>
                 </div>

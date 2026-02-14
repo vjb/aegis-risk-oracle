@@ -7,7 +7,9 @@
     "dev:server": "bun run --hot src/server.ts",
     "start:all": "bun src/launcher.ts",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build:prod": "tsc && vite build --mode production",
+    "preview": "vite preview",
+    "deploy": "npm run build:prod && echo 'Ready for deployment to Vercel/Netlify'"
   },
   "resolutions": {},
   "dependencies": {

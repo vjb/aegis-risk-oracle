@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { Shield } from 'lucide-react';
 import VerdictCard from './VerdictCard';
+import RiskGauge from './RiskGauge';
 
 interface Props {
     status: string;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function AegisVisualizer({ status, scanData, verdict }: Props) {
+    // Show final verdict card
     if (status === 'COMPLETE') {
         return (
             <motion.div
@@ -23,6 +25,25 @@ export default function AegisVisualizer({ status, scanData, verdict }: Props) {
         );
     }
 
+    // Show Risk Gauge during ANALYZING phase
+    if (status === 'ANALYZING' && scanData) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8 }}
+                className="w-full"
+            >
+                <RiskGauge
+                    riskScore={scanData?.riskScore || 0}
+                    status={status}
+                    verdict={verdict}
+                />
+            </motion.div>
+        );
+    }
+
+    // Default scanning animation
     return (
         <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
             {/* Central scanning animation */}
@@ -42,8 +63,7 @@ export default function AegisVisualizer({ status, scanData, verdict }: Props) {
                     <Shield className="w-12 h-12 text-cyan-400 opacity-80" />
                     <div className="text-xs font-mono text-cyan-300 animate-pulse">
                         {status === 'SCANNING' ? 'SCANNING...' :
-                            status === 'ANALYZING' ? 'ANALYZING...' :
-                                status === 'VERIFYING' ? 'VERIFYING...' : 'STANDBY'}
+                            status === 'VERIFYING' ? 'VERIFYING...' : 'STANDBY'}
                     </div>
                 </div>
             </div>

@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import LiveRiskFeed from './LiveRiskFeed';
 
 interface Props {
     status: string;
 }
 
 export default function SecurityFeed({ status }: Props) {
+    const [activeTab, setActiveTab] = useState<'logs' | 'threats'>('logs');
     const [logs, setLogs] = useState<{ time: string, msg: string, type: 'info' | 'warn' | 'success' | 'err' }[]>([
         { time: "INIT", msg: "AEGIS PROTOCOL ENGINE: v1.0.4 - READY", type: 'success' },
         { time: "NET", msg: "ORACLE CLUSTER: CONNECTED [LATENCY: 12ms]", type: 'info' }
@@ -49,34 +51,63 @@ export default function SecurityFeed({ status }: Props) {
             { time: t(), msg: "[VAULT] EXECUTING SWAP...", type: 'success' }
             ]);
         }
-        // Assuming REJECTED isn't a status string in App.tsx but inferred? 
-        // Logic handled in App.tsx sets verdict. 
-        // SecurityFeed only gets workflowStatus. 
-        // I'll stick to workflowStatus hooks for now.
     }, [status]);
 
     return (
-        <div className="h-full bg-black font-mono text-xs leading-tight p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-black" ref={scrollRef}>
-            <AnimatePresence>
-                {logs.map((log, i) => (
-                    <motion.div
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        key={i}
-                        className="mb-1 whitespace-pre-wrap break-all flex group hover:bg-zinc-900/50"
-                    >
-                        <span className="text-zinc-600 mr-2 shrink-0 select-none">[{log.time}]</span>
-                        <span className={`${log.type === 'warn' ? 'text-amber-500' :
-                                log.type === 'success' ? 'text-emerald-500' :
-                                    log.type === 'err' ? 'text-red-500' :
-                                        'text-zinc-500'
-                            }`}>
-                            {log.msg}
-                        </span>
-                    </motion.div>
-                ))}
-            </AnimatePresence>
-            <div className="mt-2 animate-pulse text-green-500">_</div>
+        <div className="h-full flex flex-col">
+            {/* Tab Switcher */}
+            <div className="flex border-b border-green-900/30 mb-2">
+                <button
+                    onClick={() => setActiveTab('logs')}
+                    className={`flex-1 px-3 py-2 text-xs uppercase tracking-wider transition-colors ${activeTab === 'logs'
+                            ? 'text-green-400 bg-black/40 border-b-2 border-green-500'
+                            : 'text-gray-600 hover:text-gray-400'
+                        }`}
+                >
+                    System Logs
+                </button>
+                <button
+                    onClick={() => setActiveTab('threats')}
+                    className={`flex-1 px-3 py-2 text-xs uppercase tracking-wider transition-colors ${activeTab === 'threats'
+                            ? 'text-purple-400 bg-black/40 border-b-2 border-purple-500'
+                            : 'text-gray-600 hover:text-gray-400'
+                        }`}
+                >
+                    Threat Feed
+                </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-hidden">
+                {activeTab === 'logs' ? (
+                    <div className="h-full bg-black font-mono text-xs leading-tight px-2 overflow-y-auto scrollbar-thin scrollbar-thumb-green-900 scrollbar-track-black" ref={scrollRef}>
+                        <AnimatePresence>
+                            {logs.map((log, i) => (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    key={i}
+                                    className="mb-1 whitespace-pre-wrap break-all flex group hover:bg-zinc-900/50"
+                                >
+                                    <span className="text-zinc-600 mr-2 shrink-0 select-none">[{log.time}]</span>
+                                    <span className={`${log.type === 'warn' ? 'text-amber-500' :
+                                        log.type === 'success' ? 'text-emerald-500' :
+                                            log.type === 'err' ? 'text-red-500' :
+                                                'text-zinc-500'
+                                        }`}>
+                                        {log.msg}
+                                    </span>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                        <div className="mt-2 animate-pulse text-green-500">_</div>
+                    </div>
+                ) : (
+                    <div className="h-full px-2">
+                        <LiveRiskFeed />
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
