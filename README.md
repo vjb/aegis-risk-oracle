@@ -43,7 +43,7 @@ Aegis introduces a **Split-Brain Risk Oracle** to solve the "Black Box" problem 
 *   **Role**: Scans for semantic, fuzzy risks (e.g. "This contract looks like a rug pull based on variable naming").
 *   **The Cluster**:
     *   **OpenAI** (GPT-4o)
-    *   **Google** (Gemini)
+
     *   **Groq** (Llama 3)
 *   **Verdict**: **Union of Fears**. If *any* model flags a risk, the network flags a risk.
 
@@ -76,7 +76,7 @@ User calls `swap()`. The Vault **locks keys in escrow** and dispatches a job to 
 ### Phase 2: The Audit (Chainlink CRE)
 The DON executes the **Split-Brain** workflow.
 - **Left Brain**: Hard math (Liquidity, Volatility).
-- **Right Brain**: Queries OpenAI, Gemini, and Groq simultaneously.
+- **Right Brain**: Queries OpenAI and Groq simultaneously.
 
 ### Phase 3: The Verdict (Consensus)
 Nodes must reach consensus on the **Risk Bitmask**.
@@ -98,7 +98,7 @@ sequenceDiagram
     par Left Brain
         CRE->>CRE: Check Honeypot / Liquidity
     and Right Brain
-        CRE->>Models: Query OpenAI + Gemini + Groq
+        CRE->>Models: Query OpenAI + Groq
     end
     
     Models-->>CRE: Semantic Flags

@@ -20,7 +20,7 @@ This directory contains the forensic verification and simulation suite for the A
 ### [`node ./tests/hollywood-demo.js`](hollywood-demo.js)
 **The "Sovereign Protocol" Demo.** This is the primary verification tool for the hackathon. It visualizes the entire "Contract-Initiated" flow with cinematic terminal output:
 - **`[VAULT] 🔒 ASSETS LOCKED`**: Proving the sovereign enforcer is active.
-- **`[ORACLE] 🧠 GPT-4o Risk Assessment`**: Proving the judge is calculating consensus.
+- **`[ORACLE] 🧠 Multi-Model Risk Assessment`**: Proving the judge is calculating consensus.
 - **`[VAULT] 🔓 VERDICT RECEIVED`**: Proving the code enforces the final outcome.
 
 ---
