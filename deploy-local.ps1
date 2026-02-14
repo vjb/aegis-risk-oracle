@@ -37,6 +37,36 @@ Write-Host "══════════════════════�
 Write-Host "   🔗 AEGIS DEPLOYMENT" -ForegroundColor Cyan
 Write-Host "════════════════════════════════════════════════════" -ForegroundColor Cyan
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 🏆 TENDERLY STATE MANIPULATION: Programmatic Funding
+# ═══════════════════════════════════════════════════════════════════════════════
+# If using Tenderly Virtual TestNet, fund our deployer account programmatically
+# This showcases Tenderly's Developer API capabilities for automated testing
+if ($env:TENDERLY_RPC_URL) {
+    Write-Host "`n💰 [TENDERLY] Initializing Virtual Faucet..." -ForegroundColor Cyan
+    
+    $deployer = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    $balance = "0x21E19E0C9BAB2400000"  # 10,000 ETH in hex
+    
+    $castPath = "$env:USERPROFILE\.foundry\bin\cast.exe"
+    $env:FOUNDRY_DISABLE_NIGHTLY_WARNING = "1"
+    
+    try {
+        # Call Tenderly-specific RPC method to set balance
+        $result = & $castPath rpc tenderly_setBalance $deployer $balance --rpc-url $RPC_URL 2>&1
+        
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "   ✅ [TENDERLY] Virtual Faucet: 10,000 ETH injected into deployer account" -ForegroundColor Green
+            Write-Host "      Address: $deployer" -ForegroundColor DarkGray
+        } else {
+            Write-Host "   ⚠️  [TENDERLY] State manipulation failed (may not be supported on this endpoint)" -ForegroundColor Yellow
+            Write-Host "      $result" -ForegroundColor DarkGray
+        }
+    } catch {
+        Write-Host "   ⚠️  [TENDERLY] Could not manipulate state: $_" -ForegroundColor Yellow
+    }
+}
+
 # Hardcoded Keys to avoid variable expansion issues
 # key: 0xac09...
 # pub: 0xf39F...

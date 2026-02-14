@@ -58,7 +58,7 @@ try {
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONTRACT ADDRESS (from deploy-local.ps1)
 # ═══════════════════════════════════════════════════════════════════════════════
-$CONTRACT_ADDRESS = "0x9A676e781A523b5d0C0e43731313A708CB607508"
+$CONTRACT_ADDRESS = "0x1F807a431614756A6866DAd9607ca62e2542ab01"
 $DON_PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 $USER_PRIVATE_KEY = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
 
