@@ -25,6 +25,7 @@ const colors = {
     gray: '\x1b[90m',
     reset: '\x1b[0m',
     darkCyan: '\x1b[36;2m',
+    magenta: '\x1b[35m',
     bold: '\x1b[1m'
 };
 
@@ -82,7 +83,18 @@ async function runScenario(name, token, price, info) {
     // -- PHASE 2: ORACLE JUDGE --
     console.log(`\n${colors.yellow}${colors.bold}[ORACLE] 🕵️‍♂️ DON Node 1: Dispatching Chainlink Forensic Workflow...${colors.reset}`);
     await new Promise(r => setTimeout(r, 600));
-    console.log(`${colors.yellow}${colors.bold}[ORACLE] 🧠 DON Node 1: AI Convergence on Deterministic Bitmask...${colors.reset}`);
+
+    console.log(`${colors.magenta}${colors.bold}[ORACLE] 🧠 DON Node 1: LEFT BRAIN (Deterministic Math)...${colors.reset}`);
+    await new Promise(r => setTimeout(r, 300));
+    console.log(`   -> ${colors.gray}Analyzing GoPlus Honeypot vectors...${colors.reset}`);
+    console.log(`   -> ${colors.gray}Calculating Liquidity Curves...${colors.reset}`);
+
+    await new Promise(r => setTimeout(r, 600));
+    console.log(`${colors.cyan}${colors.bold}[ORACLE] 🧠 DON Node 1: RIGHT BRAIN (Multi-Model AI Cluster)...${colors.reset}`);
+    await new Promise(r => setTimeout(r, 300));
+    console.log(`   -> ${colors.gray}Querying OpenAI (GPT-4o) ...${colors.reset}`);
+
+    console.log(`   -> ${colors.gray}Querying Groq (Llama 3.3) ...${colors.reset}`);
 
     const payload = JSON.stringify({ tokenAddress: token, chainId: "31337", askingPrice: price });
     const dockerRes = spawnSync('docker', [
@@ -116,7 +128,7 @@ async function runScenario(name, token, price, info) {
         const riskCode = parseInt(res.riskCode);
         const hex = res.riskCodeHex;
 
-        console.log(`\n   -> ${colors.cyan}Judge Consensus Verified.${colors.reset}`);
+        console.log(`\n   -> ${colors.magenta}Bitwise Consensus Verified (Logic | AI).${colors.reset}`);
         console.log(`   -> ${colors.darkCyan}"${res.reasoning}"${colors.reset}`);
 
         const flags = decodeRiskCode(riskCode);
@@ -155,32 +167,6 @@ async function main() {
     await new Promise(r => setTimeout(r, 2000));
     await runScenario("PROTECTED ATTACK", "0xBAD0000000000000000000000000000000000066", "99999.00", "Simulated Volatility / Source Anomaly");
     await new Promise(r => setTimeout(r, 2000));
-
-    // -- SCENARIO 3: AUTOMATION PREEMPTIVE BLOCK --
-    console.log(`\n\n${colors.gray}================================================================${colors.reset}`);
-    console.log(`${colors.cyan}${colors.bold} 🛡️  SCENARIO: PREEMPTIVE PROTECTION ${colors.reset} ${colors.gray}(Chainlink Automation)${colors.reset}`);
-    console.log(`${colors.gray}================================================================${colors.reset}`);
-
-    const PEPE = "0x6982508145454Ce325dDbE47a25d4ec3d2311933";
-    console.log(`\n${colors.yellow}${colors.bold}[AUTOMATION] ⚙️  Chainlink Node: Detected Malicious Pattern in mempool for PEPE.${colors.reset}`);
-    console.log(`   -> Executing updateRiskCache(${PEPE}, 16)...`);
-
-    runCast(['send', CONTRACT_ADDRESS, 'updateRiskCache(address,uint256)', PEPE, '16', '--private-key', USER_PRIVATE_KEY, '--rpc-url', 'http://localhost:8545']);
-
-    await new Promise(r => setTimeout(r, 800));
-    console.log(`   -> ${colors.green}Vault Risk Cache Updated. Asset blacklisted.${colors.reset}`);
-
-    console.log(`\n${colors.cyan}${colors.bold}[DISPATCHER] 🤖 User Intent: Swap 1 ETH for PEPE...${colors.reset}`);
-    await new Promise(r => setTimeout(r, 600));
-    console.log(`   -> [JARVIS] Warning: Preemptive blacklist hit. Blocking at source.`);
-
-    try {
-        console.log(`\n${colors.yellow}${colors.bold}[VAULT] 🔒 Intercepting Swap...${colors.reset}`);
-        const amt = "1000000000000000000";
-        runCast(['send', CONTRACT_ADDRESS, 'swap(address,uint256)', PEPE, amt, '--value', amt, '--private-key', USER_PRIVATE_KEY, '--rpc-url', 'http://localhost:8545']);
-    } catch (e) {
-        console.log(`\n${colors.red}${colors.bold}[VAULT] 🚫 STOP. Blacklist Match (Automation). Trade Blocked.${colors.reset}`);
-    }
 
     console.log(`\n${colors.cyan}${colors.bold}================================================================${colors.reset}`);
     console.log(`${colors.cyan}${colors.bold}   🏁 PROTOCOL VERIFIED: The Code Enforces the Safety.${colors.reset}`);

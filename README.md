@@ -1,14 +1,14 @@
 # 🛡️ AEGIS: THE SOVEREIGN DEFI FIREWALL (Chainlink 2026)
 
-> **"Stopping Scams at the Smart Contract Level."**  
-> *Track: Risk & Compliance / Artificial Intelligence*
+> **"A Split-Brain Protocol for Deterministic DeFi Security."**
+> *Track: Chainlink Runtime Environment (CRE) / Artificial Intelligence*
 
 👉 **[Read the Full Technical Architecture Deep Dive here](docs/SYSTEM_BLUEPRINT.md)**
 
 ## 🎬 The "Hollywood" Demo (Run in 2 mins)
-We've packaged the entire protocol (Blockchain + Chainlink CRE + AI) into a single Docker container for easy verification.
+We've packaged the entire protocol (Blockchain + Chainlink CRE + AI Cluster) into a single Docker container.
 
-> ⚠️ **Note on Scope**: The Frontend is a cinematic visualization for the hackathon video. The **REAL** technical innovation is in the `Chainlink CRE` logs and the `AegisVault.sol` state changes, which you will see in the terminal.
+> ⚠️ **Note**: The Terminal you see is **REAL**. The `Chainlink CRE` is executing live forensic analysis using a **Split-Brain Architecture** (Logic + AI) before every trade.
 
 **Prerequisites:** Docker Desktop must be running.
 
@@ -16,71 +16,53 @@ We've packaged the entire protocol (Blockchain + Chainlink CRE + AI) into a sing
 # 1. Start the Docker Environment (The "World")
 docker-compose up --build -d
 
-# 2. Start the Aegis Protocol Stack (Frontend + Backend)
-.\start-aegis.ps1
-
-# 3. Run the Cinematic Verification Suite
+# 2. Run the Cinematic Verification Suite
 node ./tests/hollywood-demo.js
 ```
 
 ### 🧪 End-to-End Verification (Advanced)
-For judges who want to see the raw "metal" of the protocol, run the full 5-Phase System Audit (requires Anvil):
+For judges who want to see the raw "metal" of the protocol, run the full 5-Phase System Audit:
 
 ```bash
-# Verify Anvil + Solidity + Chainlink Oracle
+# Verify Anvil + Solidity + Chainlink Oracle + Multi-Model Consensus
 ./tests/run-full-flow.ps1
 ```
 
-### What you will see:
-1. **Trusted Swap**: A safe trade cleansly passing the forensic audit.
-2. **Protected Attack**: A malicious token being blocked and refunded autonomously.
-3. **Preemptive Block**: **(NEW)** Automation detecting a threat and updating the cache *before* a user even trades.
-
 ---
 
-## 💡 The Solution
+## 💡 The Innovation: Split-Brain Consensus
 
-### 🏛️ The Aegis Vault Architecture: "Escrow-First" Security
+Aegis introduces a **Split-Brain Risk Oracle** to solve the "Black Box" problem of AI. We don't trust a single LLM. We enforce **Byzantine Fault Tolerance (BFT)** across models.
 
-Traditional security tools suffer from the **"Time-of-Check to Time-of-Use" (TOCTOU)** vulnerability. By the time a user signs a transaction based on a "Safe" report, the market state may have changed (e.g., liquidity pulled, price crashed).
+### 🧠 Left Brain: Deterministic Logic
+*   **Role**: Enforces hard mathematical limits and known security schemas.
+*   **Checks**: Liquidity < $50k, Honeypot detection (GoPlus), Price Deviation > 50%.
+*   **Verdict**: 100% Deterministic.
 
-Aegis solves this by inverting the flow. We don't just advise; we enforce.
+### ⚡ Right Brain: Multi-Model AI Cluster
+*   **Role**: Scans for semantic, fuzzy risks (e.g. "This contract looks like a rug pull based on variable naming").
+*   **The Cluster**:
+    *   **OpenAI** (GPT-4o)
+    *   **Google** (Gemini)
+    *   **Groq** (Llama 3)
+*   **Verdict**: **Union of Fears**. If *any* model flags a risk, the network flags a risk.
 
-1.  **🔒 Lock (Escrow)**: The user/agent deposits funds into the `AegisVault`. State is frozen.
-2.  **🕵️ Audit (Forensics)**: The Vault autonomously triggers the Chainlink CRE to perform a deterministic audit on the current block state.
-3.  **⚡ Settlement (Atomic)**:
-    *   **If Safe**: The Vault executes the swap and delivers the assets.
-    *   **If Risk**: The Vault **REVERTS** the trade and refunds the original assets.
+### ⚖️ The Consensus: Bitwise Union
+The Chainlink DON aggregates the flags:
+`FinalRisk = LeftBrainBits | RightBrainBits`
 
-**The Result:** It is mathematically impossible to execute a trade that violates the safety policy. The code becomes the conscience.
+If `FinalRisk > 0`, the transaction is **REVERTED** on-chain.
 
 ---
 
 ## 👩‍⚖️ Judge's Guide: Where is the Chainlink?
 
-Aegis uses the **Chainlink Runtime Environment (CRE)** and **Chainlink Functions** to create a "Triple Lock" security architecture.
-
 | Feature | Implementation | File Link |
 | :--- | :--- | :--- |
 | **1. Sovereign Smart Escrow** | The `AegisVault.sol` contract locks funds and triggers the audit. | [AegisVault.sol](contracts/AegisVault.sol) |
-| **2. Deterministic AI (Functions)** | The CRE Workflow that runs GPT-4o but enforces deterministic bitmasks. | [main.ts](aegis-workflow/main.ts) |
-| **3. Preemptive Automation** | The `riskCache` mapping and `updateRiskCache` function for zero-latency blocking. | [AegisVault.sol:L35](contracts/AegisVault.sol#L35) |
-| **4. Verifiable Randomness (VRF)** | Salts the audit request with on-chain entropy to prevent pre-computation. | [AegisVault.sol](contracts/AegisVault.sol) |
-
-📘 **Detailed Automation Integration**: See [docs/AUTOMATION_PROOF.md](docs/AUTOMATION_PROOF.md) for implementation details, testing procedures, and production roadmap.
-
----
-
-## 💼 Real-World Use Cases & Business Value
-
-Aegis acts as a **"Physics Engine"** for the Agent Economy, enabling use cases that were previously too risky to automate.
-
-| Use Case | The Problem | The Aegis Solution | Business Value |
-| :--- | :--- | :--- | :--- |
-| **🤖 Autonomous Betting Agents** | An AI agent with wallet access could hallucinate and drain funds on bad bets or scams. | **Permission Control**: The Agent can request trades, but only the Vault holds funds. The Vault blocks any trade that fails risk checks. | **"Sleep-at-Night" Security**: Developers can run autonomous bots 24/7 without risk of total wallet drain. |
-| **🛡️ Copy-Trading Protection** | Influencers often dump tokens on followers ("Exit Liquidity"). A pre-check says "Safe," but the dump happens during the trade. | **Anti-Rug**: The Vault locks the buy-in. If the price crashes during the transaction block, the Oracle detects the anomaly and cancels the buy. | **Profit Preservation**: Users catch the upside of trends without becoming the victim of dumps. |
-| **🏢 DAO Treasury Compliance** | Multisig signers might accidentally (or maliciously) send funds to sanctioned addresses (OFAC). | **Atomic Compliance**: The Vault physically refuses transfers to high-risk addresses (Tornado Cash, Sanctions Lists) as verified by the Oracle. | **Regulatory Safety**: Automates legal compliance at the smart contract level, protecting the DAO from liability. |
-| **👶 Web3 Onboarding** | New users (or children) don't understand "Honeypots" or "Fake Collections" and ignore UI warnings. | **Safe-Fail Environment**: The Vault acts as a "Smart Wallet" that rejects interactions with unverified contracts. | **User Retention**: Prevents the "I lost everything on day 1" experience that drives users away from DeFi. |
+| **2. Split-Brain Workflow** | The CRE Workflow that runs Logic + Multi-Model AI in parallel. | [main.ts](aegis-workflow/main.ts) |
+| **3. BFT Aggregation** | Bitwise OR consensus to handle AI variance across nodes. | [simulate-consensus.ts](tests/simulate-consensus.ts) |
+| **4. Preemptive Automation** | The `riskCache` mapping for zero-latency blocking. | [AegisVault.sol:L35](contracts/AegisVault.sol#L35) |
 
 ---
 
@@ -89,12 +71,12 @@ Aegis acts as a **"Physics Engine"** for the Agent Economy, enabling use cases t
 Aegis is not just a chatbot. It is a **Smart Escrow Protocol** that enforces safety via code.
 
 ### Phase 1: The Lock (Smart Contract)
-User calls `swap()`. The Vault **locks keys in escrow** and dispatches a job to the Chainlink DON. The user *cannot* lose funds to a scam because the funds never leave the vault until safety is proven.
+User calls `swap()`. The Vault **locks keys in escrow** and dispatches a job to the Chainlink DON.
 
 ### Phase 2: The Audit (Chainlink CRE)
-The DON executes a **"Split-Brain" Workflow**:
-- **Right Brain (AI)**: `GPT-4o` scans for fuzzy risks (Sentiment, Dev History).
-- **Left Brain (Logic)**: Enforces a strict, deterministic schema.
+The DON executes the **Split-Brain** workflow.
+- **Left Brain**: Hard math (Liquidity, Volatility).
+- **Right Brain**: Queries OpenAI, Gemini, and Groq simultaneously.
 
 ### Phase 3: The Verdict (Consensus)
 Nodes must reach consensus on the **Risk Bitmask**.
@@ -105,36 +87,35 @@ Nodes must reach consensus on the **Risk Bitmask**.
 sequenceDiagram
     participant User
     participant Vault as 🛡️ AegisVault
-    participant VRF as 🎲 Chainlink VRF
     participant CRE as 🧠 Chainlink CRE
-    participant APIs as ☁️ External Data
+    participant Models as 🤖 AI Cluster
 
-    Note over User, Vault: Phase 1: The Lock
     User->>Vault: swap(token, amount)
     Vault->>Vault: 🔒 Lock Funds in Escrow
-    Vault->>VRF: requestRandomWords()
-    VRF-->>Vault: fulfillRandomWords(randomness)
     
-    Note over Vault, CRE: Phase 2: The Audit
-    Vault->>CRE: Request Risk Analysis (args: token, VRF salt)
-    CRE->>APIs: Fetch Market & Security Data (GoPlus, CoinGecko)
-    CRE->>APIs: GPT-4o Fraud Analysis
-    APIs-->>CRE: Risk Verdict (Bitmask)
+    Vault->>CRE: Request Audit
     
-    Note over Vault, CRE: Phase 3: The Verdict
+    par Left Brain
+        CRE->>CRE: Check Honeypot / Liquidity
+    and Right Brain
+        CRE->>Models: Query OpenAI + Gemini + Groq
+    end
+    
+    Models-->>CRE: Semantic Flags
+    CRE->>CRE: Bitwise Union (Logic | AI)
+    
     CRE-->>Vault: fulfillRequest(riskCode)
     
     alt is Safe (Risk == 0)
-        Vault->>User: 💸 Execute Trade (Assets Transferred)
+        Vault->>User: 💸 Execute Trade
     else is Risk (> 0)
-        Vault->>User: 🚫 REVERT & REFUND (Assets Returned)
-        Vault->>Vault: Update Risk Cache
+        Vault->>User: 🚫 REVERT & REFUND
     end
 ```
 
 ---
 
-## 🕸️ The Risk Bitmask Protocol (LLM on Rails)
+## 🕸️ The Risk Bitmask Protocol
 
 We force the AI to output specific bit flags. This ensures **determinism** across oracle nodes.
 
@@ -157,23 +138,8 @@ We force the AI to output specific bit flags. This ensures **determinism** acros
 
 - **Smart Contract**: Solidity, Foundry, Anvil
 - **Oracle Network**: Chainlink CRE, Functions, VRF, Automation
-- **AI Core**: OpenAI GPT-4o (via DON)
+- **AI Core**: Multi-Model Cluster (OpenAI, Groq)
 - **Frontend**: Next.js 15, Tailwind, ShadcnUI (SecOps Terminal)
-
----
-
-## 🗺️ Roadmap: The Path to Decentralization
-
-### Phase 1: Mainnet Hardening (Q1 2026)
-*   Deployment to **Base Mainnet**.
-*   **Chainlink Automation** integration for 24/7 portfolio monitoring.
-
-### Phase 2: Historical Forensics (Q2 2026)
-*   **The Graph Integration**: Indexing `TradeRejected` events to build a public "Blacklist" of scam tokens detected by Aegis.
-*   **OriginTrail Integration**: Publishing the full "Chain of Thought" forensic logs to the Decentralized Knowledge Graph (DKG). This creates an immutable, verifiable trail of *why* the AI rejected a trade, ensuring auditability beyond the immediate transaction.
-
-### Phase 3: Cross-Chain Aegis (Q3 2026)
-*   Using **CCIP** to protect assets on Arbitrum and Optimism from a single Base-deployed brain.
 
 ---
 

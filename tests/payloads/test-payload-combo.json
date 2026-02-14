@@ -1,10 +1,13 @@
 {
-    "_comment": "Killer Use Case: Combo Fail (Amber Flags)",
-    "_description": "Price deviation (8%) < threshold (10%) BUT Token is untrusted/high-risk.",
-    "tokenAddress": "0x9999999999999999999999999999999999999999",
-    "chainId": "1",
-    "askingPrice": "2300.00",
-    "amount": "10",
-    "userAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-    "vrfSalt": "0x4234567890abcdef4234567890abcdef4234567890abcdef4234567890abcdef"
+    "_comment": "FAIL Scenario - Combination of Risks",
+    "_token": "SUS (Suspicious Token)",
+    "_chain": "Arbitrum (Chain ID 42161)",
+    "_expected": "RISK - Left Brain: 8 (Ownership) | Right Brain: 64 (Wash Trading) + 32 (Impersonation)",
+    "tokenAddress": "0xSuspiciousContractOwnedByEOA",
+    "chainId": "42161",
+    "askingPrice": "1.00",
+    "amount": "100",
+    "userAddress": "0xTrader",
+    "coingeckoId": "tether",
+    "vrfSalt": "0xComboSalt"
 }

@@ -19,13 +19,18 @@ export const aegisPlugin: Plugin = {
                 const text = (message.content.text || "").toLowerCase();
                 const isRisky = text.includes("scam") || text.includes("honeypot") || text.includes("pepe");
 
+                // Mocking the Split-Brain Consensus Output
+                const logicFlags = isRisky ? 65535 : 0; // Deterministic Fail
+                const aiFlags = isRisky ? 99 : 0;      // AI Warning
+                const union = logicFlags | aiFlags;
+
                 const mockVerdict = {
                     status: isRisky ? "REJECT" : "APPROVE",
                     aegisVerdict: {
                         reasoning: isRisky
-                            ? "⚠️ CRITICAL: Token contracts contain malicious logic (Honeypot Detected). Ownership not renounced."
-                            : "✅ UNVERIFIED SAFE: Market metrics healthy. Liquidity > $2M. No known vulnerabilities.",
-                        riskScore: isRisky ? 95 : 5
+                            ? "🚫 Hybrid Consensus Reached. Deterministic logic flagged [HONEYPOT]. Semantic AI Cluster flagged [SCAM_PATTERNS]. Bitwise Union = [CRITICAL_RISK]."
+                            : "✅ Hybrid Consensus Reached. Deterministic logic: [SAFE]. Semantic AI Cluster: [SAFE]. Consensus: 0 (Verified).",
+                        riskScore: union
                     },
                     signature: "0xHollywoodSignatureForDemoPurposeOnly"
                 };
@@ -34,7 +39,7 @@ export const aegisPlugin: Plugin = {
 
                 if (callback) {
                     callback({
-                        text: `Oracle Verdict: ${mockVerdict.status}`,
+                        text: `Oracle Verdict: ${mockVerdict.status}\nObservation: ${mockVerdict.aegisVerdict.reasoning}`,
                         content: mockVerdict
                     });
                 }

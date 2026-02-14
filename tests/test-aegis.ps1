@@ -9,7 +9,7 @@ $GLOBAL:LastJsonResult = $null
 Write-Host "================================================================" -ForegroundColor Cyan
 Write-Host "          [AEGIS] PROTOCOL: MISSION CONTROL (v2.0)" -ForegroundColor Cyan
 Write-Host "================================================================" -ForegroundColor Cyan
-Write-Host "  Showcasing: AI Synthesis, Multi-Lock Signing, and CRE v3.0" -ForegroundColor White
+Write-Host "  Showcasing: Split-Brain Consensus (Logic + Multi-Model AI)" -ForegroundColor White
 Write-Host "================================================================" -ForegroundColor Cyan
 
 # Function to run a single test scenario
@@ -18,6 +18,7 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
     Write-Host "│ [SCENARIO] $ScenarioName" -ForegroundColor $Color
     Write-Host "└─────────────────────────────────────────────────────────────┘" -ForegroundColor $Color
     
+    # Use sh -c for robust Docker execution
     $cmd = "cd /app && cre workflow simulate ./aegis-workflow --target staging-settings --non-interactive --trigger-index 0 --http-payload $PayloadFile"
     
     $inAuditBody = $false
@@ -32,17 +33,16 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
             $message = $line.Trim()
             if ($line -match '^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\s+\[(?:USER LOG|SIMULATION)\])\s+(.*)$') {
                 $metadata = $Matches[1]
-                $message = $Matches[2] # Preserve original spaces for indentation
+                $message = $Matches[2] 
             }
 
-            # 2. Skip SDK Noise and Bulky JSON
+            # 2. Skip SDK Noise
             if ($message -match "Added experimental chain" -or 
                 $message -match "Warning: using default private key" -or
                 $message -match "Workflow compiled" -or
                 $message -match "Created HTTP trigger" -or
-                $message -match "context canceled" -or
                 $message -match "Skipping WorkflowEngineV2" -or
-                $message -match '^".*"$' -or # Hide JSON Result
+                $message -match '^".*"$' -or 
                 [string]::IsNullOrWhiteSpace($message)) {
                 return
             }
@@ -59,7 +59,6 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
                 Write-Host "[SIGNAL] " -NoNewline -ForegroundColor DarkGray
                 $content = $Matches[1]
                 
-                # Check for LIVE/MOCKED status
                 if ($content -match '\[LIVE\]') { 
                     Write-Host "[LIVE] " -NoNewline -ForegroundColor Green 
                     $rest = $content -replace '\[LIVE\]\s+', ''
@@ -76,53 +75,35 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
                 else { Write-Host "$rest" -ForegroundColor Gray }
                 return
             }
+            
+            # [LOGIC] Parsing (LEFT BRAIN)
+            if ($message -match '^\[LOGIC\]\s+(.*)$') {
+                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
+                Write-Host "[LOGIC] " -NoNewline -ForegroundColor Magenta
+                $content = $Matches[1]
+                if ($content -match 'LEFT BRAIN') { Write-Host "$content" -ForegroundColor Magenta }
+                elseif ($content -match 'FLAG:') { Write-Host "$content" -ForegroundColor Red }
+                elseif ($content -match 'Risk Score') { Write-Host "$content" -ForegroundColor Yellow }
+                else { Write-Host "$content" -ForegroundColor Gray }
+                return
+            }
+
+            # [AI] Parsing (RIGHT BRAIN)
             if ($message -match '^\[AI\]\s+(.*)$') {
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "[AI] " -NoNewline -ForegroundColor Yellow
                 $content = $Matches[1]
-                if ($content -match 'RESULT|VERDICT|REASONING') { Write-Host "$content" -ForegroundColor Yellow }
-                elseif ($content -match 'DONE|Success') { Write-Host "$content" -ForegroundColor Green }
-                elseif ($content -match 'ERR|FAIL') { Write-Host "$content" -ForegroundColor Red }
+                if ($content -match 'RIGHT BRAIN|CLUSTER') { Write-Host "$content" -ForegroundColor Cyan }
+                elseif ($content -match 'OpenAI|Gemini|Groq') { 
+                    if ($content -match 'Success') { Write-Host "$content" -ForegroundColor Green }
+                    else { Write-Host "$content" -ForegroundColor Red }
+                }
+                elseif ($content -match 'FINAL_VERDICT') { Write-Host "$content" -ForegroundColor Yellow }
                 else { Write-Host "$content" -ForegroundColor White }
-                return
-            }
-            if ($message -match '^\[SIGNER\]\s+(.*)$') {
-                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                Write-Host "[SIGNER] " -NoNewline -ForegroundColor Magenta
-                $content = $Matches[1]
-                if ($content -match 'SIGNED|Generated') { Write-Host "$content" -ForegroundColor Green }
-                else { Write-Host "$content" -ForegroundColor White }
-                return
-            }
-
-            # 4. State Machine for AI Audit (Legacy support/fallback)
-            if ($message -match "AI RISK ANALYSIS \(Logic & Reasoning\)") {
-                $inAuditBody = $true
-                $inAnalysisSection = $false
-                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                Write-Host "$message" -ForegroundColor Cyan
                 return
             }
             
-            if ($inAuditBody -and ($message -match "Verdict:")) {
-                $inAuditBody = $false
-                $inAnalysisSection = $false
-            }
-
-            if ($inAuditBody) {
-                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                if ($message -match "\[ANALYSIS\]:") {
-                     $inAnalysisSection = $true
-                     Write-Host "$message" -ForegroundColor Yellow
-                } elseif ($inAnalysisSection) {
-                     Write-Host "$message" -ForegroundColor Yellow
-                } else {
-                     Write-Host "$message" -ForegroundColor White
-                }
-                return
-            }
-
-            # 5. Fallback Highlighting
+            # Fallback
             if ($message -match "Verdict:") {
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 if ($message -match "EXECUTE|APPROVED") { Write-Host "$message" -ForegroundColor Green }
@@ -132,10 +113,6 @@ function Run-Test($ScenarioName, $PayloadFile, $ExpectedNote, $Color = "Cyan") {
             elseif ($message -match '━━━━━━|━━━') {
                 Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
                 Write-Host "$message" -ForegroundColor Cyan
-            }
-            elseif ($message -match "Loading|Initializing|Starting") {
-                Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray
-                Write-Host "$message" -ForegroundColor Gray
             }
             else {
                 if ($metadata) { Write-Host "$metadata " -NoNewline -ForegroundColor DarkGray }

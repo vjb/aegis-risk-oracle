@@ -1,11 +1,13 @@
 {
-    "_comment": "Price Manipulation Scenario (Trusted Token)",
-    "_token": "WETH (Trusted)",
-    "_expected": "REJECT - Price deviation > 100%",
+    "_comment": "FAIL Scenario - Price Manipulation / Volatility",
+    "_token": "WETH (Wrapped Ether)",
+    "_chain": "Base (Chain ID 8453)",
+    "_expected": "RISK - Left Brain: 2 (Volatility > 50%) | Right Brain: 512 (Anomaly)",
     "tokenAddress": "0x4200000000000000000000000000000000000006",
     "chainId": "8453",
-    "askingPrice": "6000.00",
-    "amount": "1",
-    "userAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-    "vrfSalt": "0x3234567890abcdef3234567890abcdef3234567890abcdef3234567890abcdef"
+    "askingPrice": "99999.00",
+    "amount": "1.0",
+    "userAddress": "0xAttackerAddress",
+    "coingeckoId": "ethereum",
+    "vrfSalt": "0xManipulatedSalt123"
 }

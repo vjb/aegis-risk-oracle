@@ -1,11 +1,13 @@
 {
-    "_comment": "Critical Honeypot Scenario",
-    "_token": "Known Honeypot (BSC)",
-    "_expected": "REJECT - is_honeypot: true",
-    "tokenAddress": "0x7339601174cC7d7b8b5d87D026a3e41Ee0D3bbfE",
+    "_comment": "FAIL Scenario - Honeypot Mechanism Detected",
+    "_token": "SCAM (Honeypot Token)",
+    "_chain": "BSC (Chain ID 56)",
+    "_expected": "RISK - Left Brain: 16 (Honeypot) | Right Brain: 4+128 (Malicious Code)",
+    "tokenAddress": "0xScamAddressHoneypot1234567890abcdef12",
     "chainId": "56",
-    "askingPrice": "2050.00",
-    "amount": "0.1",
-    "userAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-    "vrfSalt": "0x2234567890abcdef2234567890abcdef2234567890abcdef2234567890abcdef"
+    "askingPrice": "0.0000001",
+    "amount": "1000000",
+    "userAddress": "0xVictimAddress",
+    "coingeckoId": "pepe",
+    "vrfSalt": "0xbadbadbadbadbadbadbadbadbadbadbadbadbad"
 }
