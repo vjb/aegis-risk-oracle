@@ -73,7 +73,7 @@ export const executeSwapAction: Action = {
                 abi: VAULT_ABI,
                 functionName: 'swap',
                 args: [MOCK_TOKEN_ADDRESS, amountWei],
-                value: 0n, // We are swapping WETH (ERC20), handling ETH wrapping is separate, keeping simple for demo
+                value: amountWei, // Fix: Send the actual ETH to lock in escrow
             });
 
             console.log(`✅ Transaction Sent! Hash: ${hash}`);
