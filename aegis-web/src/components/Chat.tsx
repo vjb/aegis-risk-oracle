@@ -113,7 +113,7 @@ export default function Chat({ onIntent }: ChatProps) {
     const [activeSteps, setActiveSteps] = useState<boolean[]>([false, false, false]); // [Market, Security, AI]
     const [completedSteps, setCompletedSteps] = useState<boolean[]>([false, false, false]);
     const [mounted, setMounted] = useState(false);
-    const [logsExpanded, setLogsExpanded] = useState(false);
+    const [logsExpanded, setLogsExpanded] = useState(true); // Start expanded
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [messages, setMessages] = useState<Message[]>([
         { id: '1', role: 'agent', content: "Dispatcher Online. Secure Uplink Established. Awaiting Intent." },
