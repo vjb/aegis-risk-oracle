@@ -90,42 +90,44 @@ sequenceDiagram
     participant User
     participant Vault as 🛡️ AegisVault<br/>(Tenderly Virtual TestNet)
     participant CRE as 🧠 Chainlink CRE<br/>(DON Cluster)
-    participant CoinGecko as 📊 CoinGecko API
-    participant GoPlus as 🔍 GoPlus Security
-    participant OpenAI as 🤖 OpenAI GPT-4o
-    participant Groq as ⚡ Groq Llama-3
+    participant ExtData as 📊 External Data<br/>(CoinGecko + GoPlus)
+    participant AI as 🤖 AI Cluster<br/>(OpenAI + Groq)
 
-    Note over User,Vault: 🔐 PHASE 1: THE LOCK (Atomic Escrow)
-    User->>Vault: swap(token, amount)
-    Vault->>Vault: 🔒 Lock Funds in Sovereign Escrow
-    
-    Note over Vault,CRE: 📡 PHASE 2: THE AUDIT (Multi-Vector Forensics)
-    Vault->>CRE: emit AuditRequested(token, amount)
-    
-    par Left Brain: Deterministic Logic
-        CRE->>CoinGecko: GET /coins/{id}
-        CoinGecko-->>CRE: Liquidity, Volume, 24h Change
-        CRE->>GoPlus: GET /token_security/{address}
-        GoPlus-->>CRE: Honeypot, Ownership, Mint Authority
-    and Right Brain: AI Cluster (Union of Fears)
-        CRE->>OpenAI: Analyze contract metadata
-        OpenAI-->>CRE: Risk Flags (Phishing, Impersonation)
-        CRE->>Groq: Analyze transaction patterns
-        Groq-->>CRE: Risk Flags (Wash Trading, Anomalies)
+    rect rgb(52, 211, 153, 0.1)
+        Note over User,Vault: 🔐 PHASE 1: THE LOCK (Atomic Escrow)
+        User->>Vault: swap(token, amount)
+        Vault->>Vault: 🔒 Lock Funds in Sovereign Escrow
     end
     
-    Note over CRE: ⚖️ PHASE 3: CONSENSUS (BFT Aggregation)
-    CRE->>CRE: finalRisk = leftBrain | openAI | groq
+    rect rgb(96, 165, 250, 0.1)
+        Note over Vault,AI: 📡 PHASE 2: THE AUDIT (Multi-Vector Forensics)
+        Vault->>CRE: emit AuditRequested(token, amount)
+        
+        par Left Brain: Deterministic Logic
+            CRE->>ExtData: Query Liquidity + Security Metadata
+            ExtData-->>CRE: Price, Volume, Honeypot Status
+        and Right Brain: AI Cluster (Union of Fears)
+            CRE->>AI: Analyze Metadata + Patterns
+            AI-->>CRE: Semantic Risk Flags
+        end
+    end
     
-    Note over CRE,Vault: ✅ PHASE 4: THE VERDICT (Cryptographic Enforcement)
-    CRE-->>Vault: fulfillRequest(riskCode, signature)
+    rect rgb(251, 191, 36, 0.1)
+        Note over CRE: ⚖️ PHASE 3: CONSENSUS (BFT Aggregation)
+        CRE->>CRE: finalRisk = leftBrain | openAI | groq
+    end
     
-    alt Risk == 0 (SAFE)
-        Note over Vault: ✅ AI Consensus: EXECUTE
-        Vault->>User: 💸 Execute Trade & Transfer Tokens
-    else Risk > 0 (THREAT DETECTED)
-        Note over Vault: 🚫 Threat Flagged by Cluster
-        Vault->>User: 💰 FULL REFUND (Zero Loss)
+    rect rgb(167, 139, 250, 0.1)
+        Note over CRE,Vault: ✅ PHASE 4: THE VERDICT (Cryptographic Enforcement)
+        CRE-->>Vault: fulfillRequest(riskCode, signature)
+        
+        alt Risk == 0 (SAFE)
+            Note over Vault: ✅ AI Consensus: EXECUTE
+            Vault->>User: 💸 Execute Trade & Transfer Tokens
+        else Risk > 0 (THREAT DETECTED)
+            Note over Vault: 🚫 Threat Flagged by Cluster
+            Vault->>User: 💰 FULL REFUND (Zero Loss)
+        end
     end
 ```
 
