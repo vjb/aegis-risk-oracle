@@ -56,7 +56,7 @@ graph TD
     Risk2 -->|Reasoning Text| Telemetry
     
     Union -->|Strict uint256| Final[🏁 Final Verdict (Smart Contract)]
-    Telemetry -->|Rich JSON| Indexer[📊 Aegis API / UI]
+    Telemetry -.->|Resilient fire-and-forget POST| Indexer[📊 Aegis API / UI]
 
     style Start fill:#f9f,stroke:#333,stroke-width:2px
     style CRE fill:#3b82f6,stroke:#333,stroke-width:2px,color:#fff
@@ -76,7 +76,9 @@ To run non-deterministic AI on a consensus network, Aegis uses a **Split-Brain A
 
 ### ⛓️ Keeping AI "On the Rails"
 We enforce absolute determinism at the API and logic level:
-- **Temperature 0**: Flattens the probability distribution.
+- **Resilient Telemetry**: Side-channel forensic reports are dispatched via a non-blocking `try/catch` POST. This ensures that even if the UI server is down, the smart contract's settlement logic remains unblocked.
+- **Strict On-Chain Return**: After telemetry is dispatched, the script returns *only* the risk integer to the smart contract, ensuring minimal gas costs and Byzantine Fault Tolerance.
+- **Temperature 0**: Flattens the probability distribution of AI models.
 - **Seed 42**: Ensures consistent sampling across different oracle nodes.
 - **Source Code Forensic**: The oracle fetches real-time source code from BaseScan V2 to detect "hidden" risks.
 
@@ -108,13 +110,11 @@ This is the standard the DON enforces:
 
 ---
 
-## 🧪 Simulation
-
 Verify the consensus logic locally:
 
 ```bash
-docker exec -it aegis_dev sh
-cre workflow simulate ./aegis-workflow
+# Simulates full DON consensus locally
+bun tests/simulate-consensus.ts
 ```
 
 *Aegis: Forensic integrity signed by the DON ⚡*

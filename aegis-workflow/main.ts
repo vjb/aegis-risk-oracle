@@ -46,6 +46,7 @@ const configSchema = z.object({
     goplusAppKey: z.string().optional(),
     goplusAppSecret: z.string().optional(),
     basescanApiKey: z.string().optional(),
+    telemetryUrl: z.string().optional(),
 });
 
 type Config = z.infer<typeof configSchema>;
@@ -596,6 +597,12 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     const cgUrlSimple = `https://api.coingecko.com/api/v3/simple/price?ids=${requestData.coingeckoId || 'ethereum'}&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`;
     const cgUrlRich = `https://api.coingecko.com/api/v3/coins/${requestData.coingeckoId || 'ethereum'}?localization=false&tickers=false&market_data=false&community_data=false&developer_data=true&sparkline=false`;
 
+    // ==========================================================================
+    // STEP 1: DATA ACQUISITION (Simulated Consensus Node)
+    // HACKATHON MVP NOTE: This local execution simulates the Chainlink CRE 
+    // Map-Reduce protocol. In production, these concurrent calls would be 
+    // distributed across independent nodes in the DON.
+    // ==========================================================================
     const [cgResSimple, cgResRich, gpRes, bsRes] = await Promise.allSettled([
         httpClient.sendRequest(runtime as any, { url: cgUrlSimple, method: "GET", headers: cgHeaders }).result(),
         httpClient.sendRequest(runtime as any, { url: cgUrlRich, method: "GET", headers: cgHeaders }).result(),
@@ -850,9 +857,47 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
         return { name, status, flags, reasoning: reason };
     });
 
-    // --- CONSENSUS: UNION OF FEARS ---
+    // ==========================================================================
+    // STEP 2: CONSENSUS AGGREGATION (Union of Fears)
+    // HACKATHON MVP NOTE: We perform the Bitwise OR locally to guarantee demo stability.
+    // In production, each node returns its observation, and the final bitmask is
+    // calculated via the Map-Reduce consensus mechanism on-chain.
+    // ==========================================================================
     const finalRiskCode = logicFlags | aiFlags;
     const finalVerdict = finalRiskCode === 0;
+
+    // 🚀 STEP 3: TELEMETRY SIDE-CHANNEL (Resilient Forensics)
+    // Preserves rich AI reasoning without blocking consensus or on-chain settlement.
+    const telemetryUrl = runtime.config.telemetryUrl || process.env.TELEMETRY_URL || "https://our-app.com/api/telemetry";
+    if (telemetryUrl) {
+        runtime.log(`[SYS] ${CYAN}TELEMETRY:${RESET} Dispatching side-channel forensic report...`);
+        // FIRE-AND-FORGET POST (Does not block consensus)
+        Promise.resolve().then(async () => {
+            try {
+                await fetch(telemetryUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        requestId: requestData.vrfSalt || `req_${Date.now()}`,
+                        status: finalVerdict ? "COMPLIANT" : "REJECTED",
+                        riskCode: finalRiskCode,
+                        logicFlags: logicFlags,
+                        aiFlags: aiFlags,
+                        reasoning: reasoning.trim(),
+                        timestamp: Math.floor(Date.now() / 1000).toString(),
+                        details: {
+                            ...riskContext,
+                            modelResults
+                        }
+                    })
+                });
+                runtime.log(`[SYS] ${GREEN}TELEMETRY:${RESET} Side-channel delivery successful.`);
+            } catch (e) {
+                // RESILIENCE: Catch error but do not disrupt enforcement logic or crash the script.
+                runtime.log(`[SYS] ${RED}WARN:${RESET} Telemetry side-channel unreachable. Forensic log dropped, proceeding with enforcement.`);
+            }
+        });
+    }
 
     runtime.log(`[CRE] ${MAGENTA}CONSENSUS REACHED:${RESET} Bitwise Union (Logic | AI)`);
     runtime.log(`   ├─ Logic Flags: ${logicFlags}`);
@@ -860,26 +905,10 @@ const brainHandler = async (runtime: Runtime<Config>, payload: HTTPPayload): Pro
     runtime.log(`   └─ Final Code:  ${finalRiskCode} (${finalVerdict ? GREEN + "SAFE" : RED + "RISK_DETECTED"}${RESET})`);
 
 
-    // Contract Response
-    const riskCodeHex = `0x${finalRiskCode.toString(16).padStart(64, '0')}` as Hex;
-    const res = JSON.stringify({
-        verdict: finalVerdict,
-        riskCode: finalRiskCode.toString(),
-        riskCodeHex: riskCodeHex,
-        logicFlags: logicFlags,
-        aiFlags: aiFlags,
-        flagBreakdown: Object.entries(RISK_FLAG_DESCRIPTIONS)
-            .filter(([flag]) => (finalRiskCode & Number(flag)))
-            .map(([_, desc]) => desc),
-        reasoning: reasoning.trim(),
-        timestamp: Math.floor(Date.now() / 1000).toString(),
-        details: {
-            ...riskContext,
-            modelResults // Pass this to the UI
-        }
-    });
-
-    return `::AEGIS_RESULT::${res}::AEGIS_RESULT::`;
+    // 🔒 STEP 4: ON-CHAIN RETURN (Strict Enforcement)
+    // The absolute last line returns the deterministic risk integer to the smart contract.
+    // Encapsulated in the AEGIS_RESULT tag for the simulation logic to extract.
+    return `::AEGIS_RESULT::${finalRiskCode}::AEGIS_RESULT::`;
 };
 
 const initWorkflow = (config: Config) => {

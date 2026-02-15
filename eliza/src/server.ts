@@ -170,6 +170,31 @@ const server = serve({
             }
         }
 
+        if (url.pathname === "/telemetry" && req.method === "POST") {
+            try {
+                const report = await req.json();
+                const requestId = report.requestId;
+                if (!requestId) return new Response(JSON.stringify({ error: "Missing requestId" }), { status: 400, headers });
+
+                logSecOps("AUDIT", `${C.ICON_AUDIT} Side-Channel Telemetry Received for ${C.BOLD}${requestId}${C.RESET}`);
+
+                // Save report to public/reports
+                const reportDir = "public/reports";
+                const reportPath = `${reportDir}/${requestId}.json`;
+
+                // Ensure directory exists (Bun.write handles path creation if using some APIs, 
+                // but let's be safe or use Bun.write directly if it handles it)
+                await Bun.write(reportPath, JSON.stringify(report, null, 2));
+
+                logSecOps("INFO", `${C.ICON_CHECK} Forensic Report Archived: ${C.DIM}${reportPath}${C.RESET}`);
+
+                return new Response(JSON.stringify({ success: true }), { headers });
+            } catch (err: any) {
+                logSecOps("ERROR", `Telemetry ingest failed: ${err.message}`);
+                return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+            }
+        }
+
         if (url.pathname === "/audit-status" && req.method === "POST") {
             try {
                 const { requestId } = await req.json();
