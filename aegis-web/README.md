@@ -38,8 +38,9 @@ sequenceDiagram
     Contract-->>Terminal: Event: Locked(10 ETH)
     
     rect rgb(30, 41, 59)
-        Note over Terminal: 📡 FORENSIC MODE ACTIVE
-        Terminal->>Terminal: Stream Logs from CRE
+        Note over Terminal: 📡 SPLIT-PATH TELEMETRY ACTIVE
+        Contract-->>Terminal: [Consensus] Enforcement Path (Bitmap)
+        Agent-->>Terminal: [Telemetry] Forensic Path (AI Reasoning)
     end
     
     Contract-->>Terminal: Event: Released(Safe)

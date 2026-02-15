@@ -36,8 +36,10 @@ stateDiagram-v2
     
     state AUDITING {
         [*] --> CRE_Processing
-        CRE_Processing --> Variance_Check
-        Variance_Check --> Consensus_Reached
+    state AUDITING {
+        [*] --> CRE_Processing
+        CRE_Processing --> Bitmap_Union
+        Bitmap_Union --> Consensus_Reached
     }
     
     AUDITING --> SETTLED : fulfillRequest(RiskCode)
@@ -48,6 +50,7 @@ stateDiagram-v2
         Check_Risk --> REFUND : Risk > 0
     }
     
+    SETTLED --> TELEMETRY : [Async] AI Reasoning Egress
     SETTLED --> IDLE : Transaction Complete
 ```
 
@@ -60,7 +63,9 @@ Aegis shifts trust from a chatbot to an immutable smart contract. The Vault acts
 1. **User calls `swap(ETH)`**
 2. **Vault LOCKS the ETH** (Triple Lock Phase 1)
 3. **Vault DISPATCHES job to Chainlink**
-4. **Vault WAITS for bitmask consensus**
+4. **Vault WAITS for Split-Path Consensus**:
+    - **Enforcement Path**: Bitwise OR of Risk Bitmaps.
+    - **Telemetry Path**: AI reasoning pushed to the UI.
 5. **Vault SETTLES or REFUNDS** autonomously.
 
 ---

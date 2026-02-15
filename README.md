@@ -63,7 +63,7 @@ node ./tests/test-ai-detection.ts
 
 ## 💡 The Innovation: Split-Brain Consensus
 
-Aegis introduces a **Split-Brain Risk Oracle** to solve the "Black Box" problem of AI. We don't trust a single LLM. We enforce **Byzantine Fault Tolerance (BFT)** across models.
+Aegis introduces a **Split-Brain Risk Oracle** to solve the "Black Box" problem of AI. We don't trust a single LLM. We enforce **Byzantine Fault Tolerance (BFT)** across models and strictly decouple **Enforcement** from **Telemetry**.
 
 ### 🧠 Left Brain: Deterministic Logic
 *   **Role**: Enforces hard mathematical limits and known security schemas.
@@ -71,19 +71,24 @@ Aegis introduces a **Split-Brain Risk Oracle** to solve the "Black Box" problem 
 *   **Verdict**: 100% Deterministic.
 
 ### ⚡ Right Brain: Multi-Model AI Cluster
-*   **Role**: **Forensic Analyst** (Unit 731). Scans for semantic, fuzzy risks and deep correlations (e.g., "High Volume + Low Liquidity = Wash Trading").
-*   **The Cluster**:
+*   **Role**: **Forensic Analyst**. Scans for semantic, fuzzy risks and deep correlations (e.g., "High Volume + Low Liquidity = Wash Trading").
 *   **The Cluster (elizaOS x Aegis)**:
     *   **OpenAI** (GPT-4o): Reasoning over "Why" a token is unsafe.
     *   **Groq** (Llama-3): Fast, adversarial review for impersonation lures.
-*   **Telemetry**: Analyzes **Full Source Code**, **Security Descriptions**, **GitHub History**, and **Liquidity Depth** from BaseScan, CoinGecko, & GoPlus.
 *   **Verdict**: **Union of Fears**. If *any* model flags a risk, the network flags a risk.
 
-### ⚖️ The Consensus: Bitwise Union
-The Chainlink DON aggregates the flags:
-`FinalRisk = LeftBrainBits | RightBrainBits`
+### ⚖️ The Consensus: Split-Path Architecture
+To achieve production-grade speed and reliability, we split the oracle output into two channels:
 
-If `FinalRisk > 0`, the transaction is **REVERTED** on-chain.
+1.  **Enforcement Channel (On-Chain)**:
+    *   **Data**: Strict `Risk Bitmap` (uint256).
+    *   **Consensus**: **Bitwise Union (OR)**. If even one node sees a threat, the contract reverts.
+    *   **Benefit**: Guaranteed safety (zero false negatives) and minimal gas costs.
+
+2.  **Telemetry Channel (Off-Chain)**:
+    *   **Data**: Rich AI Reasoning & Forensic Logs.
+    *   *   **Mechanism**: Fire-and-Forget Egress from each node to the Aegis API/UI.
+    *   **Benefit**: The SecOps Terminal displays deep reasoning without slowing down the blockchain verdict.
 
 ---
 
@@ -113,8 +118,9 @@ The DON executes the **Split-Brain** workflow.
 
 ### Phase 3: The Verdict (Consensus)
 Nodes must reach consensus on the **Risk Bitmask**.
-- **Risk 0**: `fulfillRequest` unlocks the funds.
-- **Risk > 0**: `fulfillRequest` refunds the user autonomously.
+- **Consensus**: Bitwise OR across the DON.
+- **Enforcement**: If Risk > 0, the Vault refunds the user atomically.
+- **Reporting**: Detailed AI reasoning is pushed to the UI via the Telemetry Channel.
 
 ```mermaid
 sequenceDiagram
@@ -147,19 +153,23 @@ sequenceDiagram
     end
     
     rect rgb(251, 191, 36, 0.1)
-        Note over CRE: ⚖️ PHASE 3: CONSENSUS (BFT Aggregation)
-        CRE->>CRE: finalRisk = leftBrain | openAI | groq
+        Note over CRE: ⚖️ PHASE 3: CONSENSUS (BFT Union)
+        CRE->>CRE: consensusRisk = Node1 | Node2 | Node3
     end
     
     rect rgb(167, 139, 250, 0.1)
-        Note over CRE,Vault: ✅ PHASE 4: THE VERDICT (Cryptographic Enforcement)
-        CRE-->>Vault: fulfillRequest(riskCode, signature)
+        Note over CRE,Vault: ✅ PHASE 4: THE VERDICT (Enforcement + Telemetry)
+        par Enforcement
+            CRE-->>Vault: fulfillRequest(riskCode, signature)
+        and Telemetry
+            CRE-->>Indexer: [HTTP] Forensic AI Reasoning
+        end
         
         alt Risk == 0 (SAFE)
             Note over Vault: ✅ AI Consensus: EXECUTE
             Vault->>User: 💸 Execute Trade & Transfer Tokens
         else Risk > 0 (THREAT DETECTED)
-            Note over Vault: 🚫 Threat Flagged by Cluster
+            Note over Vault: 🚫 Threat Flagged by DON
             Vault->>User: 💰 FULL REFUND (Zero Loss)
         end
     end
