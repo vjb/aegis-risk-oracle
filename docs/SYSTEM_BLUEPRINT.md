@@ -147,9 +147,9 @@ Aegis acts as a **"Physics Engine"** for the Agent Economy.
 
 | Use Case | Description | Business Value |
 | :--- | :--- | :--- |
-| **🤖 Autonomous Betting Agents** | Agents can place bets on prediction markets, but the Vault prevents them from sending funds to fake market contracts. | **Principal Protection**: Developers can run bots 24/7 without fear of wallet draining. |
-| **🏢 DAO Compliance** | A DAO Treasury wants to automate grants but must ensure no funds go to sanctioned (OFAC) addresses. | **Regulatory Safety**: Compliance is enforced *atomically* by code, not by human signers. |
-| **🛡️ Copy-Trading Security** | You copy a "Key Opinion Leader" (KOL). They buy a token, then dump it. Aegis detects the dump in the same block. | **Anti-Exit Liquidity**: Protects followers from predatory influencer behavior. |
+| **🤖 Meme vs Utility Audits** | Automated forensics for tokens like BRETT and TOSHI, detecting wash trading and impersonation lures. | **Retail Risk Reduction**: Prevents users from FOMO-ing into high-tax memetic traps. |
+| **🏢 Institutional Stable Swaps** | Approved settlement for blue-chips like official Circle USDC while blocking fake impersonation lures. | **Brand Protection**: Ensures capital only flows into verified institutional contracts. |
+| **🛡️ Holistic Transparency** | Flags protocol "Black Boxes" (like DEGEN bridge) that lack public code or verifiable dev provenance. | **DeFi Transparency**: Forces development teams to maintain higher standards of public accountability. |
 
 ---
 

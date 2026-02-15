@@ -131,6 +131,7 @@ export default function Chat({ onIntent }: ChatProps) {
     ]);
     const [scanAnalysis, setScanAnalysis] = useState<{ logic: number, ai: number, modelResults?: any[] } | null>(null);
     const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
+    const [auditStartedInMessages, setAuditStartedInMessages] = useState<Record<string, boolean>>({});
     const terminalEndRef = useRef<HTMLDivElement>(null);
 
     // Fix hydration error: Initialize logs only on client
@@ -222,14 +223,26 @@ export default function Chat({ onIntent }: ChatProps) {
                     const isRejected = data.status === 'REJECTED';
                     addLog(isRejected ? 'WARN' : 'CONSENSUS', `ORACLE VERDICT RECEIVED: ${data.status}`);
 
-                    setMessages(prev => [...prev, {
-                        id: Date.now().toString(),
-                        role: 'agent',
-                        content: isRejected
-                            ? `❌ [AEGIS_REJECT] Security scan complete. Verdict: THREAT_DETECTED. Assets refunded.`
-                            : "✅ [AEGIS_APPROVE] Compliance verified. Settlement authorized.",
-                        isVerdict: true
-                    }]);
+                    setMessages(prev => {
+                        const newMessages = [...prev];
+                        // Find the "AUDIT INITIATED" message and stop the consensus text
+                        const auditMsgIndex = newMessages.findLastIndex(m => m.id && auditStartedInMessages[m.id]);
+                        if (auditMsgIndex !== -1) {
+                            newMessages[auditMsgIndex] = {
+                                ...newMessages[auditMsgIndex],
+                                content: newMessages[auditMsgIndex].content.replace('Consensus in progress...', 'Consensus Achieved.')
+                            };
+                        }
+
+                        return [...newMessages, {
+                            id: Date.now().toString(),
+                            role: 'agent',
+                            content: isRejected
+                                ? `❌ [AEGIS_REJECT] Security scan complete. Verdict: THREAT_DETECTED. Assets refunded.`
+                                : "✅ [AEGIS_APPROVE] Compliance verified. Settlement authorized.",
+                            isVerdict: true
+                        }];
+                    });
                 }
             } catch (err) {
                 console.error("Polling error:", err);
@@ -299,8 +312,13 @@ export default function Chat({ onIntent }: ChatProps) {
                 });
             }
 
+            const messageId = Date.now().toString();
+            if (isRiskQuery && data.text.includes('PENDING')) {
+                setAuditStartedInMessages(prev => ({ ...prev, [messageId]: true }));
+            }
+
             setMessages(prev => [...prev, {
-                id: Date.now().toString(),
+                id: messageId,
                 role: 'agent',
                 content: data.text,
                 isVerdict: isRiskQuery && (
@@ -338,7 +356,7 @@ export default function Chat({ onIntent }: ChatProps) {
     };
 
     return (
-        <div className="w-full flex flex-col gap-3 h-[85vh]">
+        <div className="w-full flex flex-col gap-3 h-[80vh] max-h-[80vh] overflow-hidden">
             {/* MAIN AREA: 2-Column Layout */}
             <div className="flex gap-3 flex-1">
                 {/* LEFT PANE: USER/AGENT CHAT (Dispatcher) - Wider for readability */}
@@ -522,7 +540,7 @@ export default function Chat({ onIntent }: ChatProps) {
                                 {/* ANALOG VAULT STATE */}
                                 <div className="flex items-center gap-6 w-full justify-center py-2">
                                     <div className="flex flex-col items-center gap-1">
-                                        <div className={cn("w-2 h-2 rounded-full", scanningStatus === 'idle' ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,1)]" : "bg-zinc-800")} />
+                                        <div className={cn("w-2 h-2 rounded-full", (scanningStatus === 'settled' && !((scanAnalysis?.logic || 0) + (scanAnalysis?.ai || 0) > 0)) ? "bg-green-500 shadow-[0_0_10px_rgba(34,197,94,1)]" : "bg-zinc-800")} />
                                         <span className="text-[8px] font-bold opacity-40">READY</span>
                                     </div>
                                     <div className="w-12 h-[1px] bg-white/5" />

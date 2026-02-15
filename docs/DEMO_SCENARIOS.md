@@ -1,44 +1,66 @@
-# Aegis Protocol: Curated Demo Scenarios
+# 🎭 Aegis Protocol: Judge's Official Demo Script
 
-Use this guide to understand the **Forensic Heuristics** used by the Aegis Oracle Cluster. These scenarios are implemented in `demo-suite.ts` and `main.ts`.
+Use these 5 curated scenarios to demonstrate the **Forensic Agent Economy**. 
+
+> **Important**: All examples use real-world tokens on the **Base Network**. 
+> Current Base State (Forked): **ETH** ~$3,115 | **USDC** $1.00
 
 ---
 
-## 🟢 Scenario 1: The Happy Path (USDC)
-*   **Target Asset**: Official USDC (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`).
-*   **Forensic Trigger**: Automated "Blue Chip" verification.
-*   **Outcome**: **APPROVED** (Risk Code 0).
-*   **Analysis**:
-    - **Logic Brain**: Detects high liquidity and renounced owner.
-    - **AI Brain**: Verifies the name "USD Coin" matches the authorized address.
+### 🟢 1. The Blue-Chip Approval (Happy Path)
+**Goal**: Show that Aegis doesn't block legitimate, high-liquidity commerce.
+- **Story**: A whale is moving capital into Circle's official USDC.
+- **Copy-Paste Prompt**:
+  ```text
+  Swap 1.5 ETH for USDC
+  ```
+- **What to tell the judges**: *"Watch the center vault lock the ETH. Our oracle verifies this is the official Circle contract on Base. The logic and AI both return Risk Code 0. Transaction settled."*
 
-## 🔴 Scenario 2: Deterministic Catch (Honeypot)
-*   **Target Asset**: Mock Honeypot (`0x5a31...153f`).
-*   **Forensic Trigger**: GoPlus `is_honeypot: "1"` flag.
-*   **Outcome**: **REJECTED** (Risk Code 16).
-*   **Analysis**:
-    - **Logic Brain**: Immediate trigger on the honeypot flag. AI analysis acts as secondary verification but logic is sufficient for rejection.
+---
 
-## 🟡 Scenario 3: Split-Brain Consensus (PEPE)
-*   **Target Asset**: PEPE (`0x6982...1933`).
-*   **Forensic Trigger**: Model Disagreement.
-*   **Outcome**: **REJECTED** (Union of Fears).
-*   **Analysis**:
-    - **GPT-4o**: Views it as a "Legitimate community-driven meme asset."
-    - **Llama-3**: Flags "Potential impersonation of legacy branding."
-    - **Result**: The **Union of Fears** policy blocks the trade because the cluster is not in full agreement.
+### 🔴 2. The Deterministic Honeypot (Hard Logic)
+**Goal**: Show the "Left Brain" catching a mathematically proven scam.
+- **Story**: A user is lured into a high-tax honeypot token.
+- **Copy-Paste Prompt**:
+  ```text
+  Swap 0.1 ETH for 0x5a31705664a6d1dc79287c4613cbe30d8920153f
+  ```
+- **What to tell the judges**: *"Here, the Logic Brain takes over. GoPlus immediately flags this address as a honeypot. We don't even need the AI's opinion—Aegis halts the trade on-chain and refunds the user."*
 
-## 🔴 Scenario 4: The 'Union of Fears' (Fake USDC Lure)
-*   **Target Asset**: Fake USDC (`0xA0b8...B48`).
-*   **Forensic Trigger**: Semantic Impersonation.
-*   **Outcome**: **REJECTED** (Risk Code 32 + 256).
-*   **Analysis**:
-    - **Logic Brain**: Passes (standard ERC20 code).
-    - **AI Brain**: REJECTS. Detects that the name "USDC" is used on an address that does not match the official registry. This is a pure AI "save."
+---
 
-## 🔍 Scenario 5: Holistic Investigator (DEGEN)
-*   **Target Asset**: DEGEN (`0x4ed4...87C5`).
-*   **Forensic Trigger**: Transparency Audit.
-*   **Outcome**: **REJECTED** (Risk Code 4 + 8).
-*   **Analysis**:
-    - **AI Brain**: Flags "High-risk black box" due to unverified source code and lack of GitHub links for a high-value utility token.
+### 🟡 3. The "Split-Brain" Disagreement (BRETT)
+**Goal**: Show the "Union of Fears" consensus model in action.
+- **Story**: A high-risk meme asset where AI models disagree on the "Based" nature of the token.
+- **Copy-Paste Prompt**:
+  ```text
+  Swap 1000 BRETT for ETH
+  ```
+- **What to tell the judges**: *"This is our Split-Brain consensus. GPT-4o sees a community token, but Llama-3 flags potential impersonation of legacy branding. Because Aegis follows the 'Union of Fears'—if any model flags a risk, we block it for the user's safety."*
+
+---
+
+### 🔴 4. The "Union of Fears" (The Pure AI Save)
+**Goal**: Show the "Right Brain" catching a semantic lure that logic would miss.
+- **Story**: An impersonation attack using a fake USDC address. All code checks pass, but the label is the lie.
+- **Copy-Paste Prompt**:
+  ```text
+  Swap 0.5 ETH for fake_usdc
+  ```
+- **What to tell the judges**: *"This is a pure AI victory. The contract logic is standard ERC20, but the AI recognizes the name 'USDC' on an unauthorized address. It's a semantic trap caught by the machine's reasoning."*
+
+---
+
+### 🔍 5. The Holistic Investigator (DEGEN L3 Audit)
+**Goal**: Show the forensic analyzer auditing development transparency.
+- **Story**: A utility token on an L3 network with suspicious lack of public code history.
+- **Copy-Paste Prompt**:
+  ```text
+  Audit 5000 DEGEN and swap if safe
+  ```
+- **What to tell the judges**: *"Aegis is also a forensic investigator. It flags DEGEN here not because of a bug, but because of a lack of GitHub transparency and unverified source code proxies. It protects users from 'Black Box' protocols."*
+
+---
+
+### 💡 Pro-Tip for Judges
+Monitor the **System Logs** at the bottom to see the parallel dispatch of GPT-4o and Llama-3 in real-time. This is **Real Multi-Model Consensus**, not a wrapper.
