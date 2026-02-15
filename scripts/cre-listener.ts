@@ -72,7 +72,9 @@ const TOKEN_MAP: Record<string, { label: string, cgId: string }> = {
     "0x4200000000000000000000000000000000000006": { label: "WETH", cgId: "ethereum" },
     "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599": { label: "WBTC", cgId: "wrapped-bitcoin" },
     "0x514910771AF9Ca656af840dff83E8264EcF986CA": { label: "LINK", cgId: "chainlink" },
-    "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984": { label: "UNI", cgId: "uniswap" }
+    "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984": { label: "UNI", cgId: "uniswap" },
+    "0x5a31705664a6d1dc79287c4613cbe30d8920153f": { label: "Honeypot Lure (MOCK)", cgId: "ethereum" },
+    "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": { label: "Fake USDC (MOCK)", cgId: "usd-coin" }
 };
 // DON Private Key (Mock for Hackathon)
 const DON_KEY = (process.env.DON_PRIVATE_KEY as Hex) || "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";

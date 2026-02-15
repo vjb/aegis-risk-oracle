@@ -331,17 +331,20 @@ export const executeSwapAction: Action = {
 
             if (callback) {
                 if (isBlacklisted) {
+                    const riskCode = 999;
+                    const reasoning = "Token exists in preemptive blacklist (Risk Cache).";
                     callback({
-                        text: `⛔ [AEGIS_REJECT] ${errorMessage}\n\nAutomated circuit breaker triggered by on-chain registry. Transaction reverted to protect user assets.`,
+                        text: `❌ [AEGIS_REJECT] Pre-emptive security block. Verdict: THREAT_DETECTED.\n\n**FORENSIC AUDIT SUMMARY**\n- **Risk Code**: ${riskCode}\n- **Risk Score**: 100/100\n- **Forensic Reasoning**: ${reasoning}\n\nAssets have been safely refunded by the circuit breaker.`,
                         content: {
                             status: "REJECT",
-                            riskCode: 999, // Custom code for blacklist
+                            riskCode: riskCode,
                             aegisVerdict: {
-                                reasoning: "Token exists in preemptive blacklist (Risk Cache)."
+                                reasoning: reasoning
                             }
                         }
                     });
-                } else {
+                }
+                else {
                     callback({
                         text: `Transaction failed: ${errorMessage}`,
                         error: true

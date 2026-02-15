@@ -41,8 +41,13 @@ export const aegisPlugin: Plugin = {
                 console.log(`[AEGIS PLUGIN] Generated Verdict for "${text}":`, mockVerdict.status);
 
                 if (callback) {
+                    const statusText = isRisky ? "REJECT" : "APPROVE";
+                    const reasoning = isRisky
+                        ? `❌ [AEGIS_REJECT] Security scan complete. Verdict: THREAT_DETECTED.\n\n**FORENSIC AUDIT SUMMARY**\n- **Risk Code**: ${union}\n- **Risk Score**: ${union}/100\n- **Forensic Reasoning**: ${mockVerdict.aegisVerdict.reasoning}\n\nAssets have been safely refunded to your wallet.`
+                        : `✅ [AEGIS_APPROVE] Compliance verified. Settlement authorized.`;
+
                     callback({
-                        text: `Oracle Verdict: ${mockVerdict.status}\nObservation: ${mockVerdict.aegisVerdict.reasoning}`,
+                        text: reasoning,
                         content: mockVerdict
                     });
                 }

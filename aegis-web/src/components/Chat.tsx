@@ -234,11 +234,14 @@ export default function Chat({ onIntent }: ChatProps) {
                             };
                         }
 
+                        const report = data.report || {};
+                        const riskCode = (report.logicFlags || 0) | (report.aiFlags || 0);
+
                         return [...newMessages, {
                             id: Date.now().toString(),
                             role: 'agent',
                             content: isRejected
-                                ? `❌ [AEGIS_REJECT] Security scan complete. Verdict: THREAT_DETECTED. Assets refunded.`
+                                ? `❌ [AEGIS_REJECT] Security scan complete. Verdict: THREAT_DETECTED.\n\n**FORENSIC AUDIT SUMMARY**\n- **Risk Code**: ${riskCode}\n- **Risk Score**: ${report.riskScore || 0}/100\n- **Forensic Reasoning**: ${report.reason || 'Critical security threat identified.'}\n\nAssets have been safely refunded to your wallet.`
                                 : "✅ [AEGIS_APPROVE] Compliance verified. Settlement authorized.",
                             isVerdict: true
                         }];
@@ -407,7 +410,9 @@ export default function Chat({ onIntent }: ChatProps) {
                                                             </div>
                                                             <div className="flex flex-col">
                                                                 <span className="text-amber-400 font-bold tracking-wider text-base">AUDIT INITIATED</span>
-                                                                <span className="text-[10px] text-amber-500/60 font-mono">Consensus in progress...</span>
+                                                                {!m.content.includes('Consensus Achieved') && (
+                                                                    <span className="text-[10px] text-amber-500/60 font-mono">Consensus in progress...</span>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     )}
